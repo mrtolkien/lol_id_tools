@@ -77,23 +77,24 @@ class LolIdTools:
 
         tentative_name, ratio = process.extractOne(input_str, self._app_data['from_names'].keys())
 
-        log_output = ' matching from {} to {}. Type: {}, Locale: {}'.format(
+        log_output = ' matching from {} to {}. Type: {}, Locale: {}, Ratio {}'.format(
             input_str,
             tentative_name,
             self._app_data['from_names'][tentative_name]['id_type'],
-            self._app_data['from_names'][tentative_name]['locale']
+            self._app_data['from_names'][tentative_name]['locale'],
+            ratio
         )
 
         if ratio >= 90:
             log.debug('High confidence' + log_output)
-        elif 70 <= ratio < 90:
+        elif 75 <= ratio < 90:
             log.info('Low confidence' + log_output)
-        elif ratio < 70:
+        elif ratio <= 75:
             if retry:
                 self.reload_app_data()
                 return self.get_id(input_str, False)
             else:
-                log.warning('Very low confidence ' + log_output)
+                log.warning('Very low confidence' + log_output)
 
         return self._app_data['from_names'][tentative_name]['id']
 
