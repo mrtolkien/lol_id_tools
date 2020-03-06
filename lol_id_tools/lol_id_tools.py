@@ -1,7 +1,6 @@
 import concurrent.futures
 import os
 import threading
-from collections import defaultdict
 from pprint import pprint
 import logging as log
 import requests
@@ -288,17 +287,23 @@ class LolIdTools:
         self._app_data[self._ids_dict_name][id_info['id'], id_info['locale']] = id_info
 
     def _load_nicknames(self):
-        self._nicknames_dict = \
-            self._get_json(self._nicknames_url)
+        self._nicknames_dict = self._get_json(self._nicknames_url)
 
     def _add_nicknames(self):
         for locale in self._nicknames_dict:
             if locale not in self._locales:
                 pass
             for nickname, real_name in self._nicknames_dict[locale].items():
-                self._app_data[self._names_dict_name][nickname] = self._app_data[self._names_dict_name][real_name]
+                try:
+                    self._app_data[self._names_dict_name][nickname] = self._app_data[self._names_dict_name][real_name]
+                except KeyError:
+                    log.info('Unable to add {}/{} as a nickname because it doesn’t match a Riot name.'
+                             .format(nickname, real_name))
 
     @staticmethod
     def _get_json(url):
         log.debug('Making call: {}'.format(url))
         return requests.get(url=url).json()
+
+##
+
