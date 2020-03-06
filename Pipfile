@@ -7,6 +7,8 @@ verify_ssl = true
 
 [packages]
 fuzzywuzzy = {extras = ["speedup"],version = "*"}
+joblib = "*"
+requests = "*"
 
 [requires]
 python_version = "3.8"
