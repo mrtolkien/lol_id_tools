@@ -33,9 +33,6 @@ lit.get_id('Grasp')
 lit.get_name(11, 'fr_FR')
 ">>> 'Maître Yi'"
 
-lit.get_translation('Nunu', 'ko_KR')
-">>> '누와 윌럼프'"
-
 lit.get_id('12121121')
 ">>> WARNING:root:Very low confidence matching from 12121121 to Hextech Protobelt-01. Type: item, Locale: en_US, Ratio 11"
 ">>> 3152"
