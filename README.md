@@ -33,7 +33,7 @@ lit.get_id('Grasp')
 lit.get_name(11, 'fr_FR')
 ">>> 'Maître Yi'"
 
-lit.get_translation('Nunu')
+lit.get_translation('Nunu', 'ko_KR')
 ">>> '누와 윌럼프'"
 
 lit.get_id('12121121')
