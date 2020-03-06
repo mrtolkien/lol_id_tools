@@ -8,5 +8,5 @@ setup(
     license='MIT',
     author='Tolki',
     author_email='https://twitter.com/TolkiCasts/',
-    description='A smart ID getter for League of Legends related objects.'
+    description='A tool to work with League of Legends-related object IDs.'
 )
