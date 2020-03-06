@@ -64,5 +64,5 @@ class TestTools(TestCase):
         self._test_translation('Grasp of the Undying', '착취의 손아귀')
 
     def _test_translation(self, en_name, kr_name):
-        self.assertEqual(lit.LolIdTools('en_US', 'ko_KR').get_translation(en_name), kr_name)
-        self.assertEqual(lit.LolIdTools('en_US', 'ko_KR').get_translation(kr_name), en_name)
+        self.assertEqual(lit.LolIdTools('en_US', 'ko_KR').get_translation(en_name, 'ko_KR'), kr_name)
+        self.assertEqual(lit.LolIdTools('en_US', 'ko_KR').get_translation(kr_name, 'en_US'), en_name)
