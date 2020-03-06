@@ -1,1 +1,1 @@
-from lol_id_tools.lol_id_tools import LoLIDGetter
+from lol_id_tools.lol_id_tools import LolIdTools
