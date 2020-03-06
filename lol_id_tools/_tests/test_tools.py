@@ -10,7 +10,7 @@ class TestTools(TestCase):
         self.assertIsNotNone(id_tool._locales)
         self.assertTrue(os.path.exists(id_tool._save_folder))
 
-    def test_mf(self):
+    def test_mf_id(self):
         id_tool = lit.LolIdTools('en_US', 'ko_KR')
 
         # Base case
@@ -24,11 +24,10 @@ class TestTools(TestCase):
         # Nickname test
         self.assertEqual(id_tool.get_id('MF'), 21)
 
-        # Translation test
-        self.assertEqual(id_tool.get_translation('미스 포츈'), 'Miss Fortune')
-        self.assertEqual(id_tool.get_translation('Miss Fortune'), '미스 포츈')
+    def test_mf_translation(self):
+        self._test_translation('Miss Fortune', '미스 포츈')
 
-    def test_botrk(self):
+    def test_botrk_id(self):
         id_tool = lit.LolIdTools('en_US', 'ko_KR')
 
         # Base case
@@ -42,11 +41,10 @@ class TestTools(TestCase):
         # Nickname test
         self.assertEqual(id_tool.get_id('botrk'), 3153)
 
-        # Translation test
-        self.assertEqual(id_tool.get_translation('몰락한 왕의 검'), 'Blade of the Ruined King')
-        self.assertEqual(id_tool.get_translation('Blade of the Ruined King'), '몰락한 왕의 검')
+    def test_botrk_translation(self):
+        self._test_translation('Blade of the Ruined King', '몰락한 왕의 검')
 
-    def test_grasp(self):
+    def test_grasp_id(self):
         id_tool = lit.LolIdTools('en_US', 'ko_KR')
 
         # Base case
@@ -60,7 +58,9 @@ class TestTools(TestCase):
         # Korean test
         self.assertEqual(id_tool.get_id('착취의 손아귀'), 8437)
 
-        # Translation test
-        self.assertEqual(id_tool.get_translation('착취의 손아귀'), 'Grasp of the Undying')
-        self.assertEqual(id_tool.get_translation('Grasp of the Undying'), '착취의 손아귀')
+    def test_grasp_translation(self):
+        self._test_translation('Grasp of the Undying', '착취의 손아귀')
 
+    def _test_translation(self, en_name, kr_name):
+        self.assertEqual(lit.LolIdTools('en_US', 'ko_KR').get_translation(en_name), kr_name)
+        self.assertEqual(lit.LolIdTools('en_US', 'ko_KR').get_translation(kr_name), en_name)
