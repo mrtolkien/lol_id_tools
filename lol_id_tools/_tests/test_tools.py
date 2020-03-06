@@ -5,13 +5,13 @@ import lol_id_tools as lit
 
 class TestTools(TestCase):
     def test___init(self):
-        id_tool = lit.LolIdTools('EN', 'KR')
+        id_tool = lit.LolIdTools()
 
-        self.assertIsNotNone(id_tool.languages)
-        self.assertTrue(os.path.exists(id_tool.save_folder))
+        self.assertIsNotNone(id_tool._locales)
+        self.assertTrue(os.path.exists(id_tool._save_folder))
 
     def test_mf(self):
-        id_tool = lit.LolIdTools()
+        id_tool = lit.LolIdTools('en_US', 'ko_KR')
 
         # Base case
         self.assertEqual(id_tool.get_id('Miss Fortune'), 21)
@@ -29,7 +29,7 @@ class TestTools(TestCase):
         self.assertEqual(id_tool.get_translation('Miss Fortune'), '미스 포츈')
 
     def test_botrk(self):
-        id_tool = lit.LolIdTools()
+        id_tool = lit.LolIdTools('en_US', 'ko_KR')
 
         # Base case
         self.assertEqual(id_tool.get_id('Blade of the Ruined King'), 3153)
@@ -47,7 +47,7 @@ class TestTools(TestCase):
         self.assertEqual(id_tool.get_translation('Blade of the Ruined King'), '몰락한 왕의 검')
 
     def test_grasp(self):
-        id_tool = lit.LolIdTools()
+        id_tool = lit.LolIdTools('en_US', 'ko_KR')
 
         # Base case
         self.assertEqual(id_tool.get_id('Grasp of the Undying'), 8437)
