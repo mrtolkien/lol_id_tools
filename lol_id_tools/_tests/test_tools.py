@@ -1,6 +1,8 @@
 import os
 from unittest import TestCase
 import lol_id_tools as lit
+import logging as log
+log.basicConfig(level=log.DEBUG)
 
 
 class TestTools(TestCase):
