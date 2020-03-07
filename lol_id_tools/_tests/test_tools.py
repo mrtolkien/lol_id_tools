@@ -48,8 +48,11 @@ class TestTools(TestCase):
         # Nickname test
         self.assertEqual(id_tool.get_id('MF'), 21)
 
-        # Name test
+        # Get name from ID test
         self.assertEqual(id_tool.get_name(21, 'en_US'), 'Miss Fortune')
+
+        # Object type test
+        self.assertNotEqual(id_tool.get_id('Miss Fortune', input_type='item'), 21)
 
     def test_mf_translation(self):
         self._test_translation('Miss Fortune', '미스 포츈')
@@ -71,6 +74,9 @@ class TestTools(TestCase):
         # Name test
         self.assertEqual(id_tool.get_name(3153, 'en_US'), 'Blade of the Ruined King')
 
+        # Object type test
+        self.assertNotEqual(id_tool.get_id('Blade of the Ruined King', input_type='rune'), 3153)
+
     def test_botrk_translation(self):
         self._test_translation('Blade of the Ruined King', '몰락한 왕의 검')
 
@@ -90,6 +96,9 @@ class TestTools(TestCase):
 
         # Name test
         self.assertEqual(id_tool.get_name(8437, 'en_US'), 'Grasp of the Undying')
+
+        # Object type test
+        self.assertNotEqual(id_tool.get_id('Grasp of the Undying', input_type='champion'), 8437)
 
     def test_grasp_translation(self):
         self._test_translation('Grasp of the Undying', '착취의 손아귀')
