@@ -13,7 +13,8 @@ class LolIdTools:
         """
         A python class for fuzzy matching of champion, items, and rune names in League of Legends.
 
-        :param init_locales: locales to load during initialisation.
+        :param init_locales: additional locales to load during initialisation.
+                    Loads 'en_US' on first run if nothing is specified.
 
         Examples:
             lit = LolIdTools()
@@ -23,7 +24,6 @@ class LolIdTools:
 
         Display runtime information by showing DEBUG level logging: log.basicConfig(level=log.DEBUG)
         """
-
         # Save directory is ~/.config/lol_id_tools
         self._save_folder = os.path.join(os.path.expanduser("~"), '.config', 'lol_id_tools')
         self._app_data_location = os.path.join(self._save_folder, 'id_dictionary.pkl.z')
@@ -35,33 +35,35 @@ class LolIdTools:
 
         self._names_dict_name = 'from_names'
         self._ids_dict_name = 'from_ids'
+        self._locales_list_name = 'loaded_locales'
+        self._latest_version_name = 'latest_version'
         self._nicknames_dict = None
 
         try:
             # Reload the dump
             self._app_data = joblib.load(self._app_data_location)
-            self._locales = self._app_data['loaded_locales']
             log.debug('LolIdGetter app data loaded from file. Latest version: {}.'
-                      .format(self._app_data['latest_version']))
+                      .format(self._app_data[self._latest_version_name]))
             # If we instantiated the class new locales, we only create those not loaded yet.
             for locale in init_locales:
-                if locale not in self._locales:
+                if locale not in self._app_data[self._locales_list_name]:
                     self.add_locale(locale)
         except (FileNotFoundError, EOFError):
             # If no locales are given and no dump exists, we create the English data as default
             if init_locales == ():
-                init_locales = ['en_US']
+                init_locales = ('en_US',)
 
-            self._locales = list(init_locales)
-            self.reload_app_data()
+            self.reload_app_data(init_locales)
 
-    def get_id(self, input_str: str, retry: bool = True):
+    def get_id(self, input_str: str, input_type: str = None, locale: str = None, retry: bool = True):
         """
-        Tries to get you the Riot ID for the given input string.
+        Tries to get you the Riot ID for the given input string. Can be made more precise with optional arguments.
         Logs an INFO level message if matching is slightly unsure, and WARNING if it is very unsure.
 
-        :param input_str: the name of the object you are searching for.
-        :param retry: will try once to reload all the data if it is not finding a good match. default is True.
+        :param input_str: the name of the object you are searching for. Required argument.
+        :param input_type: accepts 'champion', 'item', 'rune'. Default is None.
+        :param locale: accepts any locale and will load it if needed. Default is None.
+        :param retry: will try once to reload all the data if it is not finding a good match. Default is True.
 
         :return: the ID whose name was closest to the input string.
 
@@ -71,13 +73,19 @@ class LolIdTools:
             lit.get_id('미스 포츈')
             lit.get_id('Dio')
         """
+        search_list = self._app_data[self._names_dict_name].keys()
+        if input_type is not None:
+            search_list = [n for n in search_list if self._app_data[self._names_dict_name][n]['id_type'] == input_type]
+        if locale is not None:
+            search_list = [n for n in search_list if self._app_data[self._names_dict_name][n]['locale'] == locale]
+
         # For performance we directly return if we have a perfect match (case-sensitive)
-        if input_str in self._app_data['from_names']:
-            return self._app_data['from_names'][input_str]['id']
+        if input_str in search_list:
+            return self._app_data[self._names_dict_name][input_str]['id']
 
-        tentative_name, ratio = process.extractOne(input_str, self._app_data['from_names'].keys())
+        tentative_name, ratio = process.extractOne(input_str, search_list)
 
-        log_output = ' matching from {} to {}. Type: {}, Locale: {}, Ratio {}'.format(
+        log_output = ' matching from {} to {}.\nType: {}, Locale: {}, Precision ratio: {}'.format(
             input_str,
             tentative_name,
             self._app_data['from_names'][tentative_name]['id_type'],
@@ -86,15 +94,15 @@ class LolIdTools:
         )
 
         if ratio >= 90:
-            log.debug('High confidence' + log_output)
+            log.debug('\tHigh confidence' + log_output)
         elif 75 <= ratio < 90:
-            log.info('Low confidence' + log_output)
+            log.info('\tLow confidence' + log_output)
         elif ratio <= 75:
             if retry:
                 self.reload_app_data()
-                return self.get_id(input_str, False)
+                return self.get_id(input_str, input_type, locale, False)
             else:
-                log.warning('Very low confidence' + log_output)
+                log.warning('\tVery low confidence' + log_output)
 
         return self._app_data['from_names'][tentative_name]['id']
 
@@ -102,8 +110,8 @@ class LolIdTools:
         """
         Gets you the name for the Riot object with the given ID and locale.
 
-        :param input_id: Riot ID of the object.
-        :param locale: Locale you want the name in. default is 'en_US'.
+        :param input_id: Riot ID of the object. Required.
+        :param locale: Locale you want the name in. default is 'en_US', required.
         :param retry: will try once to reload all the data if it is not finding a match. default is True.
 
         :return: the matching object name. Raises a KeyError if not found.
@@ -111,8 +119,11 @@ class LolIdTools:
         Examples:
             lit.get_name(21)
             lit.get_name(21, 'ko_KR')
+
+        Note:
+            Outside of a bug, (id, locale) keys should be uniques and the input type shouldn’t ever be required.
         """
-        if locale not in self._locales:
+        if locale not in self._app_data[self._locales_list_name]:
             self.add_locale(locale)
 
         try:
@@ -125,13 +136,17 @@ class LolIdTools:
                 log.error('Could not find the object with ID {}'.format(input_id))
                 raise KeyError
 
-    def get_translation(self, input_str: str, output_locale: str = 'en_US', retry: bool = True):
+    def get_translation(self, input_str: str, output_locale: str = 'en_US',
+                        input_type: str = None, input_locale: str = None,
+                        retry: bool = True):
         """
         Tries to get the translation of a given Riot object name matching with the loaded locals.
 
-        :param input_str: name of the object
-        :param output_locale: the output locale. default is 'en_US'
-        :param retry: will try once to reload all the data if it is not finding a good match. default is True.
+        :param input_str: name of the object.
+        :param output_locale: the output locale. Default is 'en_US'.
+        :param input_type: accepts 'champion', 'item', 'rune'. Default is None.
+        :param input_locale: accepts any locale and will load it if needed. Default is None.
+        :param retry: will try once to reload all the data if it is not finding a good match. Default is True.
 
         :return: the best translation result through fuzzy matching.
 
@@ -140,7 +155,9 @@ class LolIdTools:
             lit.get_translation('Miss Fortune', 'ko_KR')
             lit.get_translation('MF')   # Returns the "clean name" that was fuzzy matched, can be useful too!
         """
-        return self.get_name(self.get_id(input_str, retry), output_locale)
+        if input_locale not in self._app_data[self._locales_list_name]:
+            self.add_locale(input_locale)
+        return self.get_name(self.get_id(input_str, input_type, input_locale, retry), output_locale)
 
     def show_available_locales(self):
         """
@@ -152,7 +169,7 @@ class LolIdTools:
         """
         Displays loaded locales.
         """
-        pprint(self._app_data['loaded_locales'])
+        pprint(self._app_data[self._locales_list_name])
 
     def add_locale(self, locale: str):
         """
@@ -161,13 +178,13 @@ class LolIdTools:
 
         :param locale: locale to add
         """
-        if locale in self._locales:
-            print('Trying to add an existing locale. Exiting.')
+        if locale in self._app_data[self._locales_list_name]:
+            log.warning('Trying to add an existing locale in {}. Exiting.'.format(locale))
             return
 
-        # TODO cleanup the nicknames getter as there is slight code duplication between this and reload_app_data.
-        self._locales.append(locale)
+        log.info('Adding locale {}'.format(locale))
 
+        # TODO cleanup the nicknames getter as there is slight code duplication between this and reload_app_data.
         nicknames_thread = None
         if self._nicknames_dict is None:
             nicknames_thread = threading.Thread(target=self._load_nicknames)
@@ -175,7 +192,7 @@ class LolIdTools:
 
         # self._app_data['latest_version'] will have a value set if we loaded other locales and speeds things up
         try:
-            latest_version = self._app_data['latest_version']
+            latest_version = self._app_data[self._latest_version_name]
         except (KeyError, AttributeError):
             latest_version = self._get_json('https://ddragon.leagueoflegends.com/api/versions.json')[0]
 
@@ -200,19 +217,21 @@ class LolIdTools:
             reload_app_data('en_US', 'fr_FR', 'ko_KR')
                 Destroys existing locales and loads English, French, and Korean language info.
         """
-        if locales != ():
-            self._locales = list(locales)
+        if locales == ():
+            locales = self._app_data[self._locales_list_name]
 
         nicknames_thread = threading.Thread(target=self._load_nicknames)
         nicknames_thread.start()
 
         self._app_data = {self._names_dict_name: {}, self._ids_dict_name: {},
-                          'loaded_locales': [],
-                          'latest_version': self._get_json('https://ddragon.leagueoflegends.com/api/versions.json')[0]}
+                          self._locales_list_name: [],
+                          self._latest_version_name:
+                              self._get_json('https://ddragon.leagueoflegends.com/api/versions.json')[0]}
 
         threads_list = [nicknames_thread]
-        for locale in self._locales:
-            thread = threading.Thread(target=self._load_locale, args=(locale, self._app_data['latest_version'],))
+        for locale in locales:
+            thread = threading.Thread(target=self._load_locale,
+                                      args=(locale, self._app_data[self._latest_version_name],))
             thread.start()
             threads_list.append(thread)
 
@@ -240,6 +259,11 @@ class LolIdTools:
                     data[request_type] = future.result()
                 except Exception as exc:
                     print('%r generated an exception: %s' % (request_type, exc))
+
+        if not data:
+            log.error('\tLocale "{}" not found on Riot’s server.\n'
+                      'Use lit.show_available_locales() for a list of available options.'.format(locale))
+            return
 
         for champion_tag, champion_dict in data['champion']['data'].items():
             id_information = {
@@ -270,7 +294,7 @@ class LolIdTools:
                     }
                     self._add_id_information(id_information)
 
-        self._app_data['loaded_locales'].append(locale)
+        self._app_data[self._locales_list_name].append(locale)
 
     def _add_id_information(self, id_info):
         # Adding the name -> ID info mapping
@@ -292,7 +316,7 @@ class LolIdTools:
 
     def _add_nicknames(self):
         for locale in self._nicknames_dict:
-            if locale not in self._locales:
+            if locale not in self._app_data[self._locales_list_name]:
                 pass
             for nickname, real_name in self._nicknames_dict[locale].items():
                 try:
@@ -307,4 +331,3 @@ class LolIdTools:
         return requests.get(url=url).json()
 
 ##
-
