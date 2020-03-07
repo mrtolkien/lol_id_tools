@@ -91,6 +91,17 @@ lit.get_translation('ミス・フォーチュン', 'zh_CN', input_locale='ja_JP'
 ```
 > '赏金猎人'
 
+```python
+# If get_translation() is called on an existing locale, it can help get the "clean" object name
+lit.get_translationn('Misfo')
+```
+> WARNING:root:	Very low confidence matching from Misfo to Miss Fortune.
+> 
+> Type: champion, Locale: en_US, Precision ratio: 59
+>
+> 'Miss Fortune'
+
+
 ## Handling locales
 ```python
 # Adds Polish language information

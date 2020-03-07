@@ -8,7 +8,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='lol_id_tools',
-    version='0.2.1',
+    version='0.2.2',
     packages=['lol_id_tools'],
     url='https://github.com/mrtolkien/lol_id_tools',
     license='MIT',
@@ -17,7 +17,8 @@ setup(
                       'joblib',
                       'fuzzywuzzy[speedup]'],
     author_email='gary.mialaret+pypi@gmail.com',
-    description='A tool to work with League of Legends-related object IDs.',
+    description='An id tool for League of Legends with fuzzy string matching, nicknames, multiple locales, '
+                'automatic updates, and translation.',
     long_description=long_description,
     long_description_content_type='text/markdown'
 )
