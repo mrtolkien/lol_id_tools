@@ -155,7 +155,7 @@ class LolIdTools:
             lit.get_translation('Miss Fortune', 'ko_KR')
             lit.get_translation('MF')   # Returns the "clean name" that was fuzzy matched, can be useful too!
         """
-        if input_locale not in self._app_data[self._locales_list_name]:
+        if input_locale is not None and input_locale not in self._app_data[self._locales_list_name]:
             self.add_locale(input_locale)
         return self.get_name(self.get_id(input_str, input_type, input_locale, retry), output_locale)
 
