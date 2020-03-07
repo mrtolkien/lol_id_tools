@@ -16,7 +16,9 @@ class TestTools(TestCase):
         id_tool = lit.LolIdTools()
 
         id_tool.reload_app_data('en_US', 'ko_KR')
-        self.assertEqual(id_tool._app_data[id_tool._locales_list_name], ['en_US', 'ko_KR'])
+
+        # Testing on a set so order isn’t an issue.
+        self.assertEqual(set(id_tool._app_data[id_tool._locales_list_name]), {'en_US', 'ko_KR'})
 
     def test__prints(self):
         # Testing console output is annoying, just calling the functions and checking it doesn’t crash!
@@ -32,7 +34,7 @@ class TestTools(TestCase):
 
         id_tool.add_locale('fr_FR')
 
-        self.assertEqual(id_tool._app_data[id_tool._locales_list_name], ['en_US', 'ko_KR', 'fr_FR'])
+        self.assertEqual(set(id_tool._app_data[id_tool._locales_list_name]), {'en_US', 'ko_KR', 'fr_FR'})
 
     def test_mf_id(self):
         id_tool = lit.LolIdTools('en_US', 'ko_KR')
