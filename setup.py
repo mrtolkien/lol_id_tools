@@ -8,7 +8,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='lol_id_tools',
-    version='0.2.2',
+    version='0.3.0',
     packages=['lol_id_tools'],
     url='https://github.com/mrtolkien/lol_id_tools',
     license='MIT',
