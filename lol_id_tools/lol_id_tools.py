@@ -1,6 +1,7 @@
 import concurrent.futures
 import os
 import threading
+import time
 from pprint import pprint
 import logging as log
 import requests
@@ -38,13 +39,14 @@ class LolIdTools:
         self._locales_list_name = 'loaded_locales'
         self._latest_version_name = 'latest_version'
         self._nicknames_dict = None
+        self.updating = False
 
         try:
             # Reload the dump
             self._app_data = joblib.load(self._app_data_location)
             log.debug('LolIdGetter app data loaded from file. Latest version: {}.'
                       .format(self._app_data[self._latest_version_name]))
-            # If we instantiated the class new locales, we only create those not loaded yet.
+            # If we instantiated the class with new locales, we only create those not loaded yet.
             for locale in init_locales:
                 if locale not in self._app_data[self._locales_list_name]:
                     self.add_locale(locale)
@@ -178,6 +180,11 @@ class LolIdTools:
 
         :param locale: locale to add
         """
+        # TODO make this into a decorator
+        while self.updating:
+            time.sleep(.1)
+        self.updating = True
+
         if locale in self._app_data[self._locales_list_name]:
             log.warning('Trying to add an existing locale in {}. Exiting.'.format(locale))
             return
@@ -205,6 +212,8 @@ class LolIdTools:
 
         joblib.dump(self._app_data, self._app_data_location)
 
+        self.updating = False
+
     def reload_app_data(self, *locales: str):
         """
         Reloads all the data from scratch and dumps it for future use of the package.
@@ -217,6 +226,10 @@ class LolIdTools:
             reload_app_data('en_US', 'fr_FR', 'ko_KR')
                 Destroys existing locales and loads English, French, and Korean language info.
         """
+        while self.updating:
+            time.sleep(.1)
+        self.updating = True
+
         if locales == ():
             locales = self._app_data[self._locales_list_name]
 
@@ -241,6 +254,8 @@ class LolIdTools:
         self._add_nicknames()
 
         joblib.dump(self._app_data, self._app_data_location)
+
+        self.updating = False
 
     def _load_locale(self, locale, latest_version):
         data = {}

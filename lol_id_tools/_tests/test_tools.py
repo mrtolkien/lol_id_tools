@@ -2,6 +2,7 @@ import os
 from unittest import TestCase
 import lol_id_tools as lit
 import logging as log
+import threading
 log.basicConfig(level=log.DEBUG)
 
 
@@ -14,7 +15,6 @@ class TestTools(TestCase):
 
     def test__reload(self):
         id_tool = lit.LolIdTools()
-
         id_tool.reload_app_data('en_US', 'ko_KR')
 
         # Testing on a set so order isn’t an issue.
@@ -104,6 +104,24 @@ class TestTools(TestCase):
 
     def test_grasp_translation(self):
         self._test_translation('Grasp of the Undying', '착취의 손아귀')
+
+    def test_parallel_updates(self):
+        id_tool = lit.LolIdTools()
+        id_tool.reload_app_data('en_US', 'ko_KR')
+
+        threads_list = []
+        for i in range(0, 5):
+            thread = threading.Thread(target=id_tool.reload_app_data)
+            threads_list.append(thread)
+            thread.start()
+
+        for thread in threads_list:
+            thread.join()
+
+        # Making sure we still only have two locales
+        self.assertEqual(id_tool._app_data[id_tool._locales_list_name].__len__(), 2)
+        # Testing on a set so order isn’t an issue.
+        self.assertEqual(set(id_tool._app_data[id_tool._locales_list_name]), {'en_US', 'ko_KR'})
 
     def _test_translation(self, en_name, kr_name):
         self.assertEqual(lit.LolIdTools('en_US', 'ko_KR').get_translation(en_name, 'ko_KR'), kr_name)
