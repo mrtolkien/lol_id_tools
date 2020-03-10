@@ -75,6 +75,10 @@ class LolIdTools:
             lit.get_id('미스 포츈')
             lit.get_id('Dio')
         """
+        # Handling some Leaguepedia special cases!
+        if input_str is None or input_str == 'None' or input_str == 'Loss of Ban' or input_str == '':
+            return None
+
         search_list = self._app_data[self._names_dict_name].keys()
         if input_type is not None:
             search_list = [n for n in search_list if self._app_data[self._names_dict_name][n]['id_type'] == input_type]
