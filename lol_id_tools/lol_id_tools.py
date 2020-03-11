@@ -53,7 +53,7 @@ class LolIdTools:
         except (FileNotFoundError, EOFError):
             # If no locales are given and no dump exists, we create the English data as default
             if init_locales == ():
-                init_locales = ('en_US',)
+                init_locales = 'en_US'
 
             self.reload_app_data(init_locales)
 
@@ -207,7 +207,8 @@ class LolIdTools:
         except (KeyError, AttributeError):
             latest_version = self._get_json('https://ddragon.leagueoflegends.com/api/versions.json')[0]
 
-        self._load_locale(locale, latest_version)
+        if not self._load_locale(locale, latest_version):
+            return
 
         if nicknames_thread is not None:
             nicknames_thread.join()
@@ -282,7 +283,7 @@ class LolIdTools:
         if not data:
             log.error('\tLocale "{}" not found on Riot’s server.\n'
                       'Use lit.show_available_locales() for a list of available options.'.format(locale))
-            return
+            return None
 
         for champion_tag, champion_dict in data['champion']['data'].items():
             id_information = {
