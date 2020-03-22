@@ -129,9 +129,4 @@ dmypy.json
 .pyre/
 
 # IDE files
-.idea/.gitignore
-.idea/inspectionProfiles/
-.idea/lol_id_tools.iml
-.idea/misc.xml
-.idea/modules.xml
-.idea/vcs.xml
+.idea/
