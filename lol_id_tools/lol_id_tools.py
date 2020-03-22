@@ -1,7 +1,7 @@
 import concurrent.futures
 import os
-import threading
 import time
+from concurrent.futures.thread import ThreadPoolExecutor
 from pprint import pprint
 import logging as log
 import requests
@@ -10,6 +10,8 @@ from fuzzywuzzy import process
 
 
 class LolIdTools:
+    # TODO Use async/await instead of multi threading everywhere!
+    # TODO Currently this works very stupidly with concurrent instances running. Needs a deep cleanup.
     def __init__(self, *init_locales: str):
         """
         A python class for fuzzy matching of champion, items, and rune names in League of Legends.
@@ -26,31 +28,32 @@ class LolIdTools:
         Display runtime information by showing DEBUG level logging: log.basicConfig(level=log.DEBUG)
         """
         # Save directory is ~/.config/lol_id_tools
-        # TODO Protect this against multiple instances on the same machine
-        # TODO Make sure everybody gets the same instance?
         self._save_folder = os.path.join(os.path.expanduser("~"), '.config', 'lol_id_tools')
-        self._app_data_location = os.path.join(self._save_folder, 'id_dictionary.pkl.z')
         if not os.path.exists(self._save_folder):
             os.makedirs(self._save_folder)
+
+        self._app_data_location = os.path.join(self._save_folder, 'id_dictionary.pkl.z')
 
         self._dd_url = 'https://ddragon.leagueoflegends.com/'
         self._nicknames_url = 'https://raw.githubusercontent.com/mrtolkien/lol_id_tools/master/data/nicknames.json'
 
+        # TODO Review data format, currently everything is in a big dictionary. A dedicated class would be better.
         self._names_dict_name = 'from_names'
         self._ids_dict_name = 'from_ids'
         self._locales_list_name = 'loaded_locales'
         self._latest_version_name = 'latest_version'
-        self._nicknames_dict = None
+
         self.updating = False
 
         try:
-            # Reload the dump
+            # Try to reload the dump
             self._app_data = joblib.load(self._app_data_location)
             log.debug('LolIdGetter app data loaded from file. Latest version: {}.'
                       .format(self._app_data[self._latest_version_name]))
             # If we instantiated the class with new locales, we only create those not loaded yet.
             for locale in init_locales:
                 if locale not in self._app_data[self._locales_list_name]:
+                    # TODO This ain’t even parallel... Rework it.
                     self.add_locale(locale)
         except (FileNotFoundError, EOFError):
             # If no locales are given and no dump exists, we create the English data as default
@@ -59,7 +62,7 @@ class LolIdTools:
 
             self.reload_app_data(init_locales)
 
-    def get_id(self, input_str: str, input_type: str = None, locale: str = None, retry: bool = False):
+    def get_id(self, input_str: str, input_type: str = None, locale: str = None, retry: bool = False, return_ratio=False):
         """
         Tries to get you the Riot ID for the given input string. Can be made more precise with optional arguments.
         Logs an INFO level message if matching is slightly unsure, and WARNING if it is very unsure.
@@ -68,6 +71,7 @@ class LolIdTools:
         :param input_type: accepts 'champion', 'item', 'rune'. Default is None.
         :param locale: accepts any locale and will load it if needed. Default is None.
         :param retry: will try once to reload all the data if it is not finding a good match. Default is True.
+        :param return_ratio: returns (id, ratio) instead of just id
 
         :return: the ID whose name was closest to the input string.
 
@@ -114,7 +118,10 @@ class LolIdTools:
             else:
                 log.warning('\tVery low confidence' + log_output)
 
-        return self._app_data['from_names'][tentative_name]['id']
+        if not return_ratio:
+            return self._app_data['from_names'][tentative_name]['id']
+        else:
+            return self._app_data['from_names'][tentative_name]['id'], ratio
 
     def get_name(self, input_id: int, locale: str = 'en_US', retry=False):
         """
@@ -143,12 +150,12 @@ class LolIdTools:
                 self.reload_app_data()
                 self.get_name(input_id, locale, False)
             else:
-                log.error('Could not find the object with ID {}'.format(input_id))
-                raise KeyError
+                # Returning None instead of raising an error makes it work much better in PyCharm’s console...
+                return None
 
     def get_translation(self, input_str: str, output_locale: str = 'en_US',
                         input_type: str = None, input_locale: str = None,
-                        retry: bool = False):
+                        retry: bool = False, return_ratio=False):
         """
         Tries to get the translation of a given Riot object name matching with the loaded locals.
 
@@ -157,8 +164,8 @@ class LolIdTools:
         :param input_type: accepts 'champion', 'item', 'rune'. Default is None.
         :param input_locale: accepts any locale and will load it if needed. Default is None.
         :param retry: will try once to reload all the data if it is not finding a good match. Default is True.
-
         :return: the best translation result through fuzzy matching.
+        :param return_ratio: ask for ratio as well as translation
 
         Examples:
             lit.get_translation('미스 포츈')
@@ -167,7 +174,11 @@ class LolIdTools:
         """
         if input_locale is not None and input_locale not in self._app_data[self._locales_list_name]:
             self.add_locale(input_locale)
-        return self.get_name(self.get_id(input_str, input_type, input_locale, retry), output_locale)
+        if not return_ratio:
+            return self.get_name(self.get_id(input_str, input_type, input_locale, retry), output_locale)
+        else:
+            returned_id, ratio = self.get_id(input_str, input_type, input_locale, retry, return_ratio)
+            return self.get_name(returned_id, output_locale), ratio
 
     def show_available_locales(self):
         """
@@ -188,22 +199,20 @@ class LolIdTools:
 
         :param locale: locale to add
         """
-        # TODO handle this better for concurrency cases
         while self.updating:
             time.sleep(.1)
         self.updating = True
 
         if locale in self._app_data[self._locales_list_name]:
             log.warning('Trying to add an existing locale in {}. Exiting.'.format(locale))
+            self.updating = False
             return
 
         log.info('Adding locale {}'.format(locale))
 
-        # TODO cleanup the nicknames getter as there is slight code duplication between this and reload_app_data.
-        nicknames_thread = None
-        if self._nicknames_dict is None:
-            nicknames_thread = threading.Thread(target=self._load_nicknames)
-            nicknames_thread.start()
+        # TODO cleanup the nicknames getter as there is code duplication between this and reload_app_data.
+        executor = ThreadPoolExecutor(max_workers=1)
+        future_nicknames_json = executor.submit(self._get_nicknames_json)
 
         # self._app_data['latest_version'] will have a value set if we loaded other locales and speeds things up
         try:
@@ -211,13 +220,10 @@ class LolIdTools:
         except (KeyError, AttributeError):
             latest_version = self._get_json('https://ddragon.leagueoflegends.com/api/versions.json')[0]
 
-        if not self._load_locale(locale, latest_version):
-            return
+        # We want this to finish before adding nicknames so we’re not starting it in another thread
+        self._load_locale_from_server(locale, latest_version)
 
-        if nicknames_thread is not None:
-            nicknames_thread.join()
-
-        self._add_nicknames()
+        self._add_nicknames(future_nicknames_json.result())
 
         joblib.dump(self._app_data, self._app_data_location)
 
@@ -242,31 +248,30 @@ class LolIdTools:
         if locales == ():
             locales = self._app_data[self._locales_list_name]
 
-        nicknames_thread = threading.Thread(target=self._load_nicknames)
-        nicknames_thread.start()
+        executor = ThreadPoolExecutor(max_workers=5)
 
+        # We start the nicknames thread directly as it doesn't need to know version number
+        future_nicknames_json = executor.submit(self._get_nicknames_json)
+
+        # Then, we reset our app_data dictionary and get the latest version by request
         self._app_data = {self._names_dict_name: {}, self._ids_dict_name: {},
                           self._locales_list_name: [],
                           self._latest_version_name:
                               self._get_json('https://ddragon.leagueoflegends.com/api/versions.json')[0]}
 
-        threads_list = [nicknames_thread]
         for locale in locales:
-            thread = threading.Thread(target=self._load_locale,
-                                      args=(locale, self._app_data[self._latest_version_name],))
-            thread.start()
-            threads_list.append(thread)
+            executor.submit(self._load_locale_from_server(locale, self._app_data[self._latest_version_name]))
 
-        for thread in threads_list:
-            thread.join()
+        # This forces us to wait until all threads have completed
+        executor.shutdown()
 
-        self._add_nicknames()
+        self._add_nicknames(future_nicknames_json.result())
 
         joblib.dump(self._app_data, self._app_data_location)
 
         self.updating = False
 
-    def _load_locale(self, locale, latest_version):
+    def _load_locale_from_server(self, locale, latest_version):
         data = {}
         # We can use a with statement to ensure threads are cleaned up promptly
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
@@ -279,15 +284,12 @@ class LolIdTools:
             }
             for future in concurrent.futures.as_completed(future_to_get):
                 request_type = future_to_get[future]
-                try:
-                    data[request_type] = future.result()
-                except Exception as exc:
-                    print('%r generated an exception: %s' % (request_type, exc))
+                data[request_type] = future.result()
 
         if not data:
             log.error('\tLocale "{}" not found on Riot’s server.\n'
                       'Use lit.show_available_locales() for a list of available options.'.format(locale))
-            return None
+            raise KeyError
 
         for champion_tag, champion_dict in data['champion']['data'].items():
             id_information = {
@@ -296,7 +298,7 @@ class LolIdTools:
                 'id_type': 'champion',
                 'name': champion_dict['name']
             }
-            self._add_id_information(id_information)
+            self._update_app_data(id_information)
 
         for item_id, item_dict in data['item']['data'].items():
             id_information = {
@@ -305,7 +307,7 @@ class LolIdTools:
                 'id_type': 'item',
                 'name': item_dict['name']
             }
-            self._add_id_information(id_information)
+            self._update_app_data(id_information)
 
         for rune_tree in data['runesReforged']:
             for slot in rune_tree['slots']:
@@ -316,15 +318,15 @@ class LolIdTools:
                         'id_type': 'rune',
                         'name': rune['name']
                     }
-                    self._add_id_information(id_information)
+                    self._update_app_data(id_information)
 
         self._app_data[self._locales_list_name].append(locale)
 
-    def _add_id_information(self, id_info):
+    def _update_app_data(self, id_info):
         # Adding the name -> ID info mapping
         self._app_data[self._names_dict_name][id_info['name']] = id_info
 
-        # Testing if we have overlapping IDs. Doesn’t happen on patch 10.5
+        # Testing if we have overlapping IDs. Doesn't happen on patch 10.5
         if (id_info['id'], id_info['locale']) in self._app_data[self._ids_dict_name]:
             log.warning('Multiple objects with ID {}'.format(id_info['id']))
             log.warning('\tExisting object: {}'.format(
@@ -335,14 +337,17 @@ class LolIdTools:
         # Adding the ID, locale -> ID info mapping
         self._app_data[self._ids_dict_name][id_info['id'], id_info['locale']] = id_info
 
-    def _load_nicknames(self):
-        self._nicknames_dict = self._get_json(self._nicknames_url)
+    # Requires its own function to be easily called as a thread
+    def _get_nicknames_json(self):
+        return self._get_json(self._nicknames_url)
 
-    def _add_nicknames(self):
-        for locale in self._nicknames_dict:
+    # CURRENTLY SPLIT because this requires other fields to be loaded
+    # Should be moved in a single function with get nicknames in a clean async function
+    def _add_nicknames(self, json):
+        for locale in json:
             if locale not in self._app_data[self._locales_list_name]:
-                pass
-            for nickname, real_name in self._nicknames_dict[locale].items():
+                continue
+            for nickname, real_name in json[locale].items():
                 try:
                     self._app_data[self._names_dict_name][nickname] = self._app_data[self._names_dict_name][real_name]
                 except KeyError:
