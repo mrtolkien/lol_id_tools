@@ -26,6 +26,8 @@ class LolIdTools:
         Display runtime information by showing DEBUG level logging: log.basicConfig(level=log.DEBUG)
         """
         # Save directory is ~/.config/lol_id_tools
+        # TODO Protect this against multiple instances on the same machine
+        # TODO Make sure everybody gets the same instance?
         self._save_folder = os.path.join(os.path.expanduser("~"), '.config', 'lol_id_tools')
         self._app_data_location = os.path.join(self._save_folder, 'id_dictionary.pkl.z')
         if not os.path.exists(self._save_folder):
@@ -57,7 +59,7 @@ class LolIdTools:
 
             self.reload_app_data(init_locales)
 
-    def get_id(self, input_str: str, input_type: str = None, locale: str = None, retry: bool = True):
+    def get_id(self, input_str: str, input_type: str = None, locale: str = None, retry: bool = False):
         """
         Tries to get you the Riot ID for the given input string. Can be made more precise with optional arguments.
         Logs an INFO level message if matching is slightly unsure, and WARNING if it is very unsure.
@@ -75,6 +77,8 @@ class LolIdTools:
             lit.get_id('미스 포츈')
             lit.get_id('Dio')
         """
+        # TODO make it work better with PyCharm’s console and eager loading, it creates issues at the moment
+        # TODO make all functions also return ratio, and None + ratio in case of weird queries?
         # Handling some Leaguepedia special cases!
         if input_str is None or input_str == 'None' or input_str == 'Loss of Ban' or input_str == '':
             return None
@@ -112,7 +116,7 @@ class LolIdTools:
 
         return self._app_data['from_names'][tentative_name]['id']
 
-    def get_name(self, input_id: int, locale: str = 'en_US', retry=True):
+    def get_name(self, input_id: int, locale: str = 'en_US', retry=False):
         """
         Gets you the name for the Riot object with the given ID and locale.
 
@@ -144,7 +148,7 @@ class LolIdTools:
 
     def get_translation(self, input_str: str, output_locale: str = 'en_US',
                         input_type: str = None, input_locale: str = None,
-                        retry: bool = True):
+                        retry: bool = False):
         """
         Tries to get the translation of a given Riot object name matching with the loaded locals.
 
@@ -184,7 +188,7 @@ class LolIdTools:
 
         :param locale: locale to add
         """
-        # TODO make this into a decorator
+        # TODO handle this better for concurrency cases
         while self.updating:
             time.sleep(.1)
         self.updating = True
