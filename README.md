@@ -1,7 +1,7 @@
 # lol_id_tools
 An id tool for League of Legends with fuzzy string matching, nicknames, multiple locales, automatic updates, and translation.
 
-The package relies on [fuzzywuzzy](https://github.com/seatgeek/fuzzywuzzy) for string matching. Nicknames are on 
+The package relies on [rapidfuzz](https://github.com/rhasspy/rapidfuzz) for string matching. Nicknames are on 
 [github](https://github.com/mrtolkien/lol_id_tools/blob/master/data/nicknames.json), please make a pull requests to 
 add new ones!
 

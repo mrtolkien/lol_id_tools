@@ -1,9 +1,8 @@
 -i https://pypi.org/simple
 certifi==2019.11.28
 chardet==3.0.4
-fuzzywuzzy[speedup]==0.18.0
+rapidfuzz==0.2.1
 idna==2.9
 joblib==0.14.1
-python-levenshtein==0.12.0
 requests==2.23.0
 urllib3==1.25.8

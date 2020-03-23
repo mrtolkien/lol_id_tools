@@ -15,7 +15,7 @@ setup(
     author='Tolki',
     install_requires=['requests',
                       'joblib',
-                      'fuzzywuzzy[speedup]'],
+                      'rapidfuzz'],
     author_email='gary.mialaret+pypi@gmail.com',
     description='An id tool for League of Legends with fuzzy string matching, nicknames, multiple locales, '
                 'automatic updates, and translation.',

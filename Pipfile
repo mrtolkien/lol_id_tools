@@ -6,7 +6,7 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-fuzzywuzzy = {extras = ["speedup"],version = "*"}
+rapidfuzz = "*"
 joblib = "*"
 requests = "*"
 

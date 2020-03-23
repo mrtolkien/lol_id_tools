@@ -6,7 +6,7 @@ from pprint import pprint
 import logging as log
 import requests
 import joblib
-from fuzzywuzzy import process
+from rapidfuzz import process
 
 
 class LolIdTools:
