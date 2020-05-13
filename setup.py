@@ -12,6 +12,7 @@ setuptools.setup(
     url='https://github.com/mrtolkien/lol_id_tools',
     license='MIT',
     author='Tolki',
+    # TODO Remove rapidfuzz and joblib for sqlalchemy (and sqlite)
     install_requires=['requests',
                       'joblib',
                       'rapidfuzz'],

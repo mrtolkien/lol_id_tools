@@ -11,6 +11,7 @@ joblib = "*"
 requests = "*"
 aiohttp = {extras = ["speedups"],version = "*"}
 pytest = "*"
+sqlalchemy = "*"
 
 [requires]
 python_version = "3.8"
