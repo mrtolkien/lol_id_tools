@@ -9,6 +9,8 @@ verify_ssl = true
 rapidfuzz = "*"
 joblib = "*"
 requests = "*"
+aiohttp = {extras = ["speedups"],version = "*"}
+pytest = "*"
 
 [requires]
 python_version = "3.8"

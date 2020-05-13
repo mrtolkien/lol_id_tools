@@ -95,7 +95,10 @@ class LolIdTools:
 
         # For performance we directly return if we have a perfect match (case-sensitive)
         if input_str in search_list:
-            return self._app_data[self._names_dict_name][input_str]['id']
+            if not return_ratio:
+                return self._app_data[self._names_dict_name][input_str]['id'], 100
+            else:
+                return self._app_data[self._names_dict_name][input_str]['id'], 100
 
         tentative_name, ratio = process.extractOne(input_str, search_list)
 
