@@ -7,7 +7,10 @@ dd_url = 'https://ddragon.leagueoflegends.com'
 async def load_objects(http_session, latest_version, locale: str, object_type: str):
     """Loads the selected type of objects in the database.
 
-    Param:
+    Queries the Riot servers for the data then writes it to the database.
+    All three object types are meant to be called together.
+
+    Args:
         http_session: ClientSession that issues the query
         latest_version: the latest version available on dd
         locale: the locale to load

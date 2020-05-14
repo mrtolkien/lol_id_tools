@@ -2,7 +2,7 @@ import asyncio
 import aiohttp
 
 from lol_id_tools.parsers import load_objects
-from lol_id_tools.sqlite_interface import ghost_session, LolObject, types_enum
+from lol_id_tools.sqlite_interface import ghost_session, LolObject, object_types_enum
 
 
 def locale_in_database(locale: str):
@@ -22,11 +22,8 @@ async def load_locale(locale):
     latest_version = '10.9.1'
     async with aiohttp.ClientSession() as http_session:
         await asyncio.wait([asyncio.create_task(load_objects(http_session, latest_version, locale, object_type))
-                            for object_type in types_enum.enums])
+                            for object_type in object_types_enum.enums])
 
 
 async def reload_locales():
     pass
-
-##
-

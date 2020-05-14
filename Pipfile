@@ -12,6 +12,7 @@ requests = "*"
 aiohttp = {extras = ["speedups"],version = "*"}
 pytest = "*"
 sqlalchemy = "*"
+cassiopeia = "*"
 
 [requires]
 python_version = "3.8"
