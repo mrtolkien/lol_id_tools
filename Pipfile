@@ -4,13 +4,12 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+pytest = "*"
 
 [packages]
 rapidfuzz = "*"
-joblib = "*"
 requests = "*"
 aiohttp = {extras = ["speedups"],version = "*"}
-pytest = "*"
 sqlalchemy = "*"
 cassiopeia = "*"
 

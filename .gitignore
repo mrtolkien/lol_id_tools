@@ -131,3 +131,4 @@ dmypy.json
 # IDE files
 .idea/
 /lol_id_tools/wip/
+/.old/

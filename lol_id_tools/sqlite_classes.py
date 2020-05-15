@@ -1,16 +1,14 @@
 import sqlalchemy
-from sqlalchemy import orm, Column, Integer, String, Enum
+from sqlalchemy import orm, Column, Integer, String, Enum, ForeignKey
 from sqlalchemy.ext import declarative
-
-from lol_id_tools.config import data_location
+import os
 
 sql_alchemy_base = declarative.declarative_base()
 object_types_enum = Enum('champion', 'item', 'rune')
 
 
 class LolObject(sql_alchemy_base):
-    """
-    Represents a LoL-related object with its ID, name, locale, and object type.
+    """Represents a LoL-related object with its ID, name, locale, and object type.
     """
     __tablename__ = 'lol_id'
 
@@ -43,7 +41,11 @@ class GhostSession:
     @classmethod
     def get_session(cls):
         if not cls.session:
-            engine = sqlalchemy.create_engine('sqlite:///{}'.format(data_location))
+            data_folder = os.path.join(os.path.expanduser("~"), '.config', 'lol_id_tools')
+            if not os.path.exists(data_folder):
+                os.mkdir(data_folder)
+
+            engine = sqlalchemy.create_engine(f'sqlite:///{os.path.join(data_folder, "lol_id_tools.db")}')
             sql_alchemy_base.metadata.create_all(engine)
             cls.session = orm.sessionmaker(bind=engine)()
         return cls.session

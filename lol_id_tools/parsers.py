@@ -1,5 +1,5 @@
 import logging
-from lol_id_tools.sqlite_interface import ghost_session, LolObject
+from lol_id_tools.sqlite_classes import ghost_session, LolObject
 
 dd_url = 'https://ddragon.leagueoflegends.com'
 

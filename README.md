@@ -1,121 +1,90 @@
 # lol_id_tools
-An id tool for League of Legends with fuzzy string matching, nicknames, multiple locales, automatic updates, and translation.
+An id tool for League of Legends with fuzzy string matching, nicknames, multiple locales, automatic updates, 
+and translation.
 
-The package relies on [rapidfuzz](https://github.com/rhasspy/rapidfuzz) for string matching. Nicknames are on 
-[github](https://github.com/mrtolkien/lol_id_tools/blob/master/data/nicknames.json), please make a pull requests to 
-add new ones!
+The package relies on [rapidfuzz](https://github.com/rhasspy/rapidfuzz) for string matching.
+
+This documentation pertains to `v1.0.0a`, the current alpha release. All future releases will follow its syntax and not
+the one from `v0.x` releases.
 
 # Installation
 
 Get lit with `pip install lol-id-tools`
 
-# Usage
-## Initialisation
-```python
-import lol_id_tools
+# Demo
+![Demo](demo.gif)
 
-# lit will always reload existing locales, and try to add any supplied as arguments.
-lit = lol_id_tools.LolIdTools('en_US', 'ko_KR')
+# Usage
+## Import
+```
+import lol_id_tools as lit
 ```
 ## Get id from name
-```python
-# When the name is typed properly, matching is instant.
+When the name is typed properly, matching takes about 0.4ms.
+```
 lit.get_id('Miss Fortune')
-```
 > 21
+```
 
-```python
-# Standard nicknames are loaded from https://github.com/mrtolkien/lol_id_tools/blob/master/data/nicknames.json.
+Fuzzy string and nicknames matching takes about 9ms.
+```
 lit.get_id('MF')
-```
 > 21
-
-```python
-# Any loaded locale will work
-lit.get_id('미스 포츈')
 ```
-> 21
 
-```python
-# Even very inaccurate strings can match properly, but the package will raise a warning if its confidence is low.
+If the source locale for the name is not loaded, you can force load it with
+```
+lit.get_id('미스 포츈', locale='ko_KR')
+> 21
+```
+
+The minimum_score parameter can be used to alter behaviour. 
+```
 lit.get_id('misfo')
-```
-> WARNING:root:	Very low confidence matching from misfo to Miss Fortune.
-> 
->Type: champion, Locale: en_US, Precision ratio: 59
->
+lit.NoMatchingNameFound: No object name close enough to the input string found.
+
+lit.get_id('misfo', minimum_score = 50)
 > 21
----
-```python
+```
+
+All types of object can be matched by default.
+```
 lit.get_id('Maw of Malmortius')
-```
 > 3156
-
-```python
-# This matches to Kog'Maw because of our calculation method and is an unwanted result.
-lit.get_id('Maw of Malmo')
 ```
-> 96
-
-```python
-# When we know the type of object we are looking for, we can improve accuracy by providing input_type
-lit.get_id('Maw of Malmo', input_type='item')
-```
-> 3156
 
 ## Get name from ID
-On patch 10.5 no champion, item, or rune shares an ID. If they do in the future, the package will need to be
+On patch 10.10 no champion, item, or rune shares an ID. If they do in the future, the package will need to be
 updated accordingly.
 
-```python
+```
 lit.get_name(11)
-```
 > 'Master Yi'
-
-```python
-# If a locale needed for output is not loaded, it will automatically add it to the package.
-lit.get_name(11, 'fr_FR')
 ```
+
+If a locale needed for output is not loaded, it will automatically add it to the package.
+```
+lit.get_name(11, 'fr_FR')
 > 'Maître Yi'
+```
 
 ## Get translation
-```python
-# Default output is 'en_US'
+Default output is 'en_US'
+```
 lit.get_translation('미스 포츈')
-```
 > 'Miss Fortune'
+```
 
-```python
-# If you haven’t loaded the input locale yet, you can supply it as a parameter
+If you haven’t loaded the input locale yet, you can supply it as a parameter
+```
 lit.get_translation('ミス・フォーチュン', 'zh_CN', input_locale='ja_JP')
-```
 > '赏金猎人'
-
-```python
-# If get_translation() is called on an existing locale, it can help get the "clean" object name
-lit.get_translationn('Misfo')
 ```
-> WARNING:root:	Very low confidence matching from Misfo to Miss Fortune.
-> 
-> Type: champion, Locale: en_US, Precision ratio: 59
->
+
+If get_translation() is called on an existing locale, it returns the "clean" object name
+```
+lit.get_translation('Misfo', minimum_score = 50)
 > 'Miss Fortune'
-
-
-## Handling locales
-```python
-# Adds Polish language information
-lit.add_locale('pl_PL')
-```
-
-```python
-# Forces reloading of all existing locales
-lit.reload_app_data()
-```
-
-```python
-# Reloads and saves data with only the specified locales
-lit.reload_app_data('en_US', 'ja_JP')
 ```
 
 ## Tests
@@ -125,5 +94,5 @@ for more code examples.
 
 ## Notes
 
-Package data is saved in `~/.config/lol_id_tools` for offline usage and faster startup after first use. 
-If loading all 27 LoL locales, dump size is 205kbs.
+Data is saved in `~/.config/lol_id_tools` for offline usage and faster startup after first use. 
+It uses `sqlite3` and `sqlalchemy` to query the data.

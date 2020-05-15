@@ -7,15 +7,15 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setuptools.setup(
     name='lol_id_tools',
-    version='0.4.2',
-    packages=['lol_id_tools'],
+    version='1.0.0b',
+    packages=['lol_id_tools', 'lol_id_tools/data'],
+    package_data={
+        '': ['*.json'],
+    },
     url='https://github.com/mrtolkien/lol_id_tools',
     license='MIT',
     author='Tolki',
-    # TODO Remove rapidfuzz and joblib for sqlalchemy (and sqlite)
-    install_requires=['requests',
-                      'joblib',
-                      'rapidfuzz'],
+    install_requires=['sqlalchemy', 'rapidfuzz', 'aiohttp'],
     author_email='gary.mialaret+pypi@gmail.com',
     description='An id tool for League of Legends with fuzzy string matching, nicknames, multiple locales, '
                 'automatic updates, and translation.',
