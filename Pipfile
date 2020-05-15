@@ -8,10 +8,8 @@ pytest = "*"
 
 [packages]
 rapidfuzz = "*"
-requests = "*"
 aiohttp = {extras = ["speedups"],version = "*"}
 sqlalchemy = "*"
-cassiopeia = "*"
 
 [requires]
 python_version = "3.8"
