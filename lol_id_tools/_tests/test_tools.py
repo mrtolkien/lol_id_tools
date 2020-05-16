@@ -1,14 +1,12 @@
 from concurrent.futures.thread import ThreadPoolExecutor
-from sqlalchemy import func, distinct
 import lol_id_tools as lit
-from lol_id_tools.loaders import reset_data
-from lol_id_tools.sqlite_classes import ghost_session, LolObject
+from lol_id_tools.lol_object_data import LolObjectData
+
+lod = LolObjectData()
+lod.delete_local_data()
 
 
-reset_data()
-
-
-def translation_test(en_name, kr_name):
+def translation_test_function(en_name, kr_name):
     assert lit.get_translation(en_name, 'ko_KR') == kr_name
     assert lit.get_translation(kr_name, 'en_US') == en_name
 
@@ -20,8 +18,12 @@ def test_mf_id():
     assert lit.get_id('missfortune') == 21
     # Typo test
     assert lit.get_id('misforune') == 21
-    # Korean test
+
+    # Different languages test
     assert lit.get_id('미스 포츈', input_locale='ko_KR') == 21
+    assert lit.get_id('미스 포츈', input_locale='korean') == 21
+    assert lit.get_id('missfortune', input_locale='french') == 21
+
     # Nickname test
     assert lit.get_id('MF') == 21
 
@@ -30,7 +32,7 @@ def test_mf_id():
 
 
 def test_mf_translation():
-    translation_test('Miss Fortune', '미스 포츈')
+    translation_test_function('Miss Fortune', '미스 포츈')
 
 
 def test_botrk_id():
@@ -50,7 +52,7 @@ def test_botrk_id():
 
 
 def test_botrk_translation():
-    translation_test('Blade of the Ruined King', '몰락한 왕의 검')
+    translation_test_function('Blade of the Ruined King', '몰락한 왕의 검')
 
 
 def test_grasp_id():
@@ -70,7 +72,7 @@ def test_grasp_id():
 
 
 def test_grasp_translation():
-    translation_test('Grasp of the Undying', '착취의 손아귀')
+    translation_test_function('Grasp of the Undying', '착취의 손아귀')
 
 
 def test_parallel_updates():
@@ -78,4 +80,4 @@ def test_parallel_updates():
         for i in range(0, 5):
             executor.submit(lit.get_id, 'nonsense', 100, retry=True)
 
-    assert ghost_session().query(func.count(distinct(LolObject.locale)))
+    assert lod.loaded_locales.__len__() == 3
