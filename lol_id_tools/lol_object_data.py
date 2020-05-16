@@ -1,6 +1,5 @@
 import os
 import pickle
-import time
 from typing import Dict
 from lol_id_tools.local_data_parser import load_nickname_data, IdInfo, NameInfo
 import asyncio
@@ -8,13 +7,17 @@ import logging
 import aiohttp
 from lol_id_tools.riot_data_parser import load_objects
 
+save_folder = os.path.join(os.path.expanduser("~"), '.config', 'lol_id_tools')
+if not os.path.exists(save_folder):
+    os.mkdir(save_folder)
+
 
 class LolObjectData:
     """A class handling data about LoL objects.
 
     Everything is class-wide to make sure multiple programs on the same machine use the same data.
     """
-    data_location = os.path.join(os.path.expanduser("~"), '.config', 'lol_id_tools', 'loaded_data.pkl')
+    data_location = os.path.join(save_folder, 'loaded_data.pkl')
 
     # riot_data represents all the data that we got from Riot and is ghost loaded for module loading efficiency
     # it is used directly for id -> name matching
@@ -28,15 +31,10 @@ class LolObjectData:
             self.recalculate_names_to_id()
         return self._riot_data
 
-    # Making sure we don’t pickle twice at the same time which would raise FileNotFoundError
-    pickling = False
-
     # Pickling it to minimise web requests
     def pickle_riot_data(self):
-        self.pickling = True
         with open(self.data_location, 'wb+') as file:
             pickle.dump(self.riot_data, file)
-        self.pickling = False
 
     def unpickle_riot_data(self) -> Dict[str, Dict[int, IdInfo]]:
         try:
@@ -98,8 +96,6 @@ class LolObjectData:
             ) for object_type in ['champion', 'rune', 'item']])
 
         self.recalculate_names_to_id()
-        while self.pickling:
-            time.sleep(.1)
         self.pickle_riot_data()
 
     async def reload_all_locales(self):
