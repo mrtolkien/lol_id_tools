@@ -33,7 +33,7 @@ class LolObjectData:
 
     # Pickling it to minimise web requests
     def pickle_riot_data(self):
-        if self.pickling:
+        while self.pickling:
             time.sleep(.1)
         self.pickling = True
         with open(self.data_location, 'wb+') as file:
