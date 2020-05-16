@@ -19,16 +19,20 @@ Get lit with `pip install lol-id-tools`
 import lol_id_tools as lit
 ```
 ## Get id from name
-When the name is typed properly, matching takes about 0.4ms.
+When the name is typed properly, matching takes 0.0004ms.
 ```
 lit.get_id('Miss Fortune')
 > 21
+timeit('lit.get_id("miss fortune")', setup="import lol_id_tools as lit", number=1000)
+> 0.0004502000000030648
 ```
 
-Fuzzy string and nicknames matching takes about 9ms.
+Fuzzy string matching takes about 2ms.
 ```
-lit.get_id('MF')
+lit.get_id('misfortune')
 > 21
+timeit('lit.get_id("misfortune")', setup="import lol_id_tools as lit", number=1000)
+> 2.0069257
 ```
 
 If the source locale for the name is not loaded, you can force load it with
