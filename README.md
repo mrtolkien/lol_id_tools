@@ -4,8 +4,7 @@ and translation.
 
 The package relies on [rapidfuzz](https://github.com/rhasspy/rapidfuzz) for string matching.
 
-This documentation pertains to `v1.0.0a`, the current alpha release. All future releases will follow its syntax and not
-the one from `v0.x` releases.
+This documentation pertains to `v1.0.0`, and future releases should stay compatible with its syntax.
 
 # Installation
 
