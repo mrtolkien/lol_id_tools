@@ -33,8 +33,6 @@ class LolObjectData:
 
     # Pickling it to minimise web requests
     def pickle_riot_data(self):
-        while self.pickling:
-            time.sleep(.1)
         self.pickling = True
         with open(self.data_location, 'wb+') as file:
             pickle.dump(self.riot_data, file)
@@ -42,7 +40,7 @@ class LolObjectData:
 
     def unpickle_riot_data(self) -> Dict[str, Dict[int, IdInfo]]:
         try:
-            with open(self.data_location, 'rb+') as file:
+            with open(self.data_location, 'rb') as file:
                 return pickle.load(file)
         except FileNotFoundError:
             return {}
@@ -100,6 +98,8 @@ class LolObjectData:
             ) for object_type in ['champion', 'rune', 'item']])
 
         self.recalculate_names_to_id()
+        while self.pickling:
+            time.sleep(.1)
         self.pickle_riot_data()
 
     async def reload_all_locales(self):
