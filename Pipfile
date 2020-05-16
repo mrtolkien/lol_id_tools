@@ -7,9 +7,8 @@ verify_ssl = true
 pytest = "*"
 
 [packages]
-rapidfuzz = "*"
 aiohttp = {extras = ["speedups"],version = "*"}
-sqlalchemy = "*"
+python-levenshtein = "*"
 
 [requires]
 python_version = "3.8"

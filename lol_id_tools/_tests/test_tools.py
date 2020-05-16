@@ -1,14 +1,8 @@
 from concurrent.futures.thread import ThreadPoolExecutor
-from sqlalchemy import func, distinct
 import lol_id_tools as lit
-from lol_id_tools.loaders import reset_data
-from lol_id_tools.sqlite_classes import ghost_session, LolObject
 
 
-reset_data()
-
-
-def translation_test(en_name, kr_name):
+def translation_test_function(en_name, kr_name):
     assert lit.get_translation(en_name, 'ko_KR') == kr_name
     assert lit.get_translation(kr_name, 'en_US') == en_name
 
@@ -30,7 +24,7 @@ def test_mf_id():
 
 
 def test_mf_translation():
-    translation_test('Miss Fortune', '미스 포츈')
+    translation_test_function('Miss Fortune', '미스 포츈')
 
 
 def test_botrk_id():
@@ -50,7 +44,7 @@ def test_botrk_id():
 
 
 def test_botrk_translation():
-    translation_test('Blade of the Ruined King', '몰락한 왕의 검')
+    translation_test_function('Blade of the Ruined King', '몰락한 왕의 검')
 
 
 def test_grasp_id():
@@ -70,12 +64,10 @@ def test_grasp_id():
 
 
 def test_grasp_translation():
-    translation_test('Grasp of the Undying', '착취의 손아귀')
+    translation_test_function('Grasp of the Undying', '착취의 손아귀')
 
 
 def test_parallel_updates():
     with ThreadPoolExecutor() as executor:
         for i in range(0, 5):
             executor.submit(lit.get_id, 'nonsense', 100, retry=True)
-
-    assert ghost_session().query(func.count(distinct(LolObject.locale)))

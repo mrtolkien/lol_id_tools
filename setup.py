@@ -8,7 +8,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 setuptools.setup(
     name='lol_id_tools',
     version='1.0.0b',
-    packages=['lol_id_tools', 'lol_id_tools/data'],
+    packages=['lol_id_tools', 'lol_id_tools/local_data'],
     package_data={
         '': ['*.json'],
     },

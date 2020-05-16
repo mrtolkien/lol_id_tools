@@ -23,9 +23,9 @@ class LolIdTools:
 
         Examples:
             lit = LolIdTools()
-                On first run, will create English language data. On subsequent runs, will load existing data.
+                On first run, will create English language local_data. On subsequent runs, will load existing local_data.
             lit = LolIdTools('ko_KR')
-                Creates Korean language data if not present in the dump file.
+                Creates Korean language local_data if not present in the dump file.
 
         Display runtime information by showing DEBUG level logging: log.basicConfig(level=log.DEBUG)
         """
@@ -39,7 +39,7 @@ class LolIdTools:
         self._dd_url = 'https://ddragon.leagueoflegends.com/'
         self._nicknames_url = 'https://raw.githubusercontent.com/mrtolkien/lol_id_tools/master/data/nicknames.json'
 
-        # TODO Review data format, currently everything is in a big dictionary. A dedicated class would be better.
+        # TODO Review local_data format, currently everything is in a big dictionary. A dedicated class would be better.
         self._names_dict_name = 'from_names'
         self._ids_dict_name = 'from_ids'
         self._locales_list_name = 'loaded_locales'
@@ -50,7 +50,7 @@ class LolIdTools:
         try:
             # Try to reload the dump
             self._app_data = joblib.load(self._app_data_location)
-            log.debug('LolIdGetter app data loaded from file. Latest version: {}.'
+            log.debug('LolIdGetter app local_data loaded from file. Latest version: {}.'
                       .format(self._app_data[self._latest_version_name]))
             # If we instantiated the class with new locales, we only create those not loaded yet.
             for locale in init_locales:
@@ -58,7 +58,7 @@ class LolIdTools:
                     # TODO This ain’t even parallel... Rework it.
                     self.add_locale(locale)
         except (FileNotFoundError, EOFError):
-            # If no locales are given and no dump exists, we create the English data as default
+            # If no locales are given and no dump exists, we create the English local_data as default
             if init_locales == ():
                 init_locales = 'en_US'
 
@@ -72,7 +72,7 @@ class LolIdTools:
         :param input_str: the name of the object you are searching for. Required argument.
         :param input_type: accepts 'champion', 'item', 'rune'. Default is None.
         :param locale: accepts any locale and will load it if needed. Default is None.
-        :param retry: will try once to reload all the data if it is not finding a good match. Default is True.
+        :param retry: will try once to reload all the local_data if it is not finding a good match. Default is True.
         :param return_ratio: returns (id, ratio) instead of just id
 
         :return: the ID whose name was closest to the input string.
@@ -134,7 +134,7 @@ class LolIdTools:
 
         :param input_id: Riot ID of the object. Required.
         :param locale: Locale you want the name in. default is 'en_US', required.
-        :param retry: will try once to reload all the data if it is not finding a match. default is True.
+        :param retry: will try once to reload all the local_data if it is not finding a match. default is True.
 
         :return: the matching object name. Raises a KeyError if not found.
 
@@ -168,7 +168,7 @@ class LolIdTools:
         :param output_locale: the output locale. Default is 'en_US'.
         :param input_type: accepts 'champion', 'item', 'rune'. Default is None.
         :param input_locale: accepts any locale and will load it if needed. Default is None.
-        :param retry: will try once to reload all the data if it is not finding a good match. Default is True.
+        :param retry: will try once to reload all the local_data if it is not finding a good match. Default is True.
         :return: the best translation result through fuzzy matching.
         :param return_ratio: ask for ratio as well as translation
 
@@ -200,7 +200,7 @@ class LolIdTools:
     def add_locale(self, locale: str):
         """
         Adds a new locale to the package.
-        To delete locales, regenerate the data with reload_app_data().
+        To delete locales, regenerate the local_data with reload_app_data().
 
         :param locale: locale to add
         """
@@ -236,7 +236,7 @@ class LolIdTools:
 
     def reload_app_data(self, *locales: str):
         """
-        Reloads all the data from scratch and dumps it for future use of the package.
+        Reloads all the local_data from scratch and dumps it for future use of the package.
 
         :param locales: If empty, refreshes the locales already existing. If not, loads only the given locales.
 
@@ -283,7 +283,7 @@ class LolIdTools:
             # Start the load operations and mark each future with its URL
             future_to_get = {
                 executor.submit(self._get_json,
-                                '{}cdn/{}/data/{}/{}.json'
+                                '{}cdn/{}/local_data/{}/{}.json'
                                 .format(self._dd_url, latest_version, locale, key)): key
                 for key in ['item', 'runesReforged', 'champion']
             }
@@ -296,7 +296,7 @@ class LolIdTools:
                       'Use lit.show_available_locales() for a list of available options.'.format(locale))
             raise KeyError
 
-        for champion_tag, champion_dict in data['champion']['data'].items():
+        for champion_tag, champion_dict in data['champion']['local_data'].items():
             id_information = {
                 'id': int(champion_dict['key']),
                 'locale': locale,
@@ -305,7 +305,7 @@ class LolIdTools:
             }
             self._update_app_data(id_information)
 
-        for item_id, item_dict in data['item']['data'].items():
+        for item_id, item_dict in data['item']['local_data'].items():
             id_information = {
                 'id': int(item_id),
                 'locale': locale,
