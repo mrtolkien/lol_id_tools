@@ -1,9 +1,5 @@
 from concurrent.futures.thread import ThreadPoolExecutor
 import lol_id_tools as lit
-from lol_id_tools.lol_object_data import LolObjectData
-
-lod = LolObjectData()
-lod.delete_local_data()
 
 
 def translation_test_function(en_name, kr_name):
@@ -76,8 +72,7 @@ def test_grasp_translation():
 
 
 def test_parallel_updates():
+    # Just checking nothing crashes
     with ThreadPoolExecutor() as executor:
         for i in range(0, 5):
             executor.submit(lit.get_id, 'nonsense', 100, retry=True)
-
-    assert lod.loaded_locales.__len__() == 3
