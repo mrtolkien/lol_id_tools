@@ -1,5 +1,6 @@
 import os
 import pickle
+import time
 from typing import Dict
 from lol_id_tools.local_data_parser import load_nickname_data, IdInfo, NameInfo
 import asyncio
@@ -27,10 +28,17 @@ class LolObjectData:
             self.recalculate_names_to_id()
         return self._riot_data
 
+    # Making sure we don’t pickle twice at the same time which would raise FileNotFoundError
+    pickling = False
+
     # Pickling it to minimise web requests
     def pickle_riot_data(self):
+        if self.pickling:
+            time.sleep(.1)
+        self.pickling = True
         with open(self.data_location, 'wb+') as file:
             pickle.dump(self.riot_data, file)
+        self.pickling = False
 
     def unpickle_riot_data(self) -> Dict[str, Dict[int, IdInfo]]:
         try:
