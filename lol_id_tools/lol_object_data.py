@@ -9,7 +9,7 @@ from lol_id_tools.riot_data_parser import load_objects
 
 save_folder = os.path.join(os.path.expanduser("~"), '.config', 'lol_id_tools')
 if not os.path.exists(save_folder):
-    os.mkdir(save_folder)
+    os.makedirs(save_folder)
 
 
 class LolObjectData:
