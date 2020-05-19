@@ -71,6 +71,14 @@ def test_grasp_translation():
     translation_test_function('Grasp of the Undying', '착취의 손아귀')
 
 
+def test_keystone():
+    assert lit.get_name(8000) == 'Precision'
+
+
+def test_perks():
+    assert lit.get_name(5002) == 'Armor'
+
+
 def test_parallel_updates():
     # Just checking nothing crashes
     with ThreadPoolExecutor() as executor:

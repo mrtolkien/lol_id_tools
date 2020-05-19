@@ -5,7 +5,7 @@ from lol_id_tools.local_data_parser import load_nickname_data, IdInfo, NameInfo
 import asyncio
 import logging
 import aiohttp
-from lol_id_tools.riot_data_parser import load_objects
+from lol_id_tools.data_parser import load_riot_objects, parse_cdragon_runes
 
 save_folder = os.path.join(os.path.expanduser("~"), '.config', 'lol_id_tools')
 if not os.path.exists(save_folder):
@@ -91,9 +91,11 @@ class LolObjectData:
         self.riot_data[locale] = {}
 
         async with aiohttp.ClientSession() as http_session:
-            await asyncio.wait([asyncio.create_task(
-                load_objects(self.riot_data, http_session, latest_version, locale, object_type)
-            ) for object_type in ['champion', 'rune', 'item']])
+            coroutines = [load_riot_objects(self.riot_data, http_session, latest_version, locale, object_type) for
+                          object_type in ['champion', 'rune', 'item']]
+            coroutines.append(parse_cdragon_runes(self.riot_data, http_session, locale))
+
+            await asyncio.wait([asyncio.create_task(c) for c in coroutines])
 
         self.recalculate_names_to_id()
         self.pickle_riot_data()
