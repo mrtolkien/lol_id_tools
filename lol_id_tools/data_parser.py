@@ -53,7 +53,7 @@ def parse_items(data, locale, local_data):
 def parse_runes(data, locale, local_data):
     for rune_tree in data:
         # Adding tree names
-        local_data[locale][rune_tree['id']] = IdInfo(rune_tree['key'], 'rune')
+        local_data[locale][rune_tree['id']] = IdInfo(rune_tree['name'], 'rune')
         for slot in rune_tree['slots']:
             for rune in slot['runes']:
                 local_data[locale][rune['id']] = IdInfo(rune['name'], 'rune')
