@@ -37,6 +37,10 @@ def get_name(input_id: int, output_locale: str = 'en_US', object_type=None, retr
     except ValueError:
         raise ValueError('The input could not be cast to an integer.')
 
+    # Riot uses 0 as a "no item" value
+    if input_id == 0:
+        return ''
+
     # We start by cleaning up our locale
     output_locale = get_clean_locale(output_locale)
 
@@ -65,7 +69,7 @@ def get_name(input_id: int, output_locale: str = 'en_US', object_type=None, retr
         loop.run_until_complete(loop.create_task(lod.reload_all_locales()))
         return get_name(input_id, output_locale, False)
 
-    raise KeyError('No associated Riot object could not be found.')
+    raise KeyError(f'No associated Riot object with id {input_id} could not be found.')
 
 
 class NoMatchingNameFound(Exception):
