@@ -30,6 +30,11 @@ def get_name(input_id: int, output_locale: str = 'en_US', retry=False) -> str:
         get_name(21)
         get_name(21, 'ko_KR')
     """
+    try:
+        input_id = int(input_id)
+    except ValueError:
+        raise ValueError('The input could not be cast to an integer.')
+
     # We start by cleaning up our locale
     output_locale = get_clean_locale(output_locale)
 
