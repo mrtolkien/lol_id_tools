@@ -5,7 +5,6 @@ from typing import Dict
 
 from rapidfuzz.process import extractOne
 
-IdInfo = namedtuple('IdInfo', ['name', 'object_type'])
 NameInfo = namedtuple('NameInfo', ['id', 'object_type', 'locale'])
 
 

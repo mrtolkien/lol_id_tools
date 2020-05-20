@@ -1,4 +1,5 @@
 import asyncio
+import warnings
 
 from rapidfuzz.process import extractOne
 
@@ -9,7 +10,7 @@ from lol_id_tools.lol_object_data import LolObjectData
 lod = LolObjectData()
 
 
-def get_name(input_id: int, output_locale: str = 'en_US', retry=False) -> str:
+def get_name(input_id: int, output_locale: str = 'en_US', object_type=None, retry=False) -> str:
     """Gets you the name of the associated Riot object.
 
     If the chosen locale is not loaded in the database, it will be loaded before returning the result.
@@ -17,6 +18,7 @@ def get_name(input_id: int, output_locale: str = 'en_US', retry=False) -> str:
     Args:
         input_id: Riot ID of the object.
         output_locale: Locale of the output.
+        object_type: specifics the object type you want the name of, in ['champion', 'item', 'rune', 'summoner_spell']
         retry: Optional variable specifying if local_data should be reloaded if the object cannot be found.
 
     Returns:
@@ -40,7 +42,16 @@ def get_name(input_id: int, output_locale: str = 'en_US', retry=False) -> str:
 
     # First, we see if the object is there with the given constraints
     try:
-        return lod.riot_data[output_locale][input_id].name
+        if not object_type:
+            if lod.riot_data[output_locale][input_id].__len__() > 1:
+                warnings.warn('Multiple objects with this ID found, please inform object_type')
+            for object_type in ['champion', 'item', 'rune', 'summoner_spell']:
+                # Iterating this way to have a priority between object types
+                # TODO Rework that for more readable code
+                if object_type in lod.riot_data[output_locale][input_id]:
+                    break
+
+        return lod.riot_data[output_locale][input_id][object_type]
     except KeyError:
         pass
 
@@ -54,7 +65,7 @@ def get_name(input_id: int, output_locale: str = 'en_US', retry=False) -> str:
         loop.run_until_complete(loop.create_task(lod.reload_all_locales()))
         return get_name(input_id, output_locale, False)
 
-    raise KeyError('The associated Riot object could not be found.')
+    raise KeyError('No associated Riot object could not be found.')
 
 
 class NoMatchingNameFound(Exception):
@@ -71,7 +82,7 @@ def get_id(input_str: str, minimum_score: int = 75,
         input_str: Search string.
         minimum_score: Optional minimum ratio (between 0 and 100) under which the function retries or raises.
         input_locale: The language the input was in.
-        object_type: Optional boolean specifying the type of the object in [champion, item, rune].
+        object_type: Optional string in ['champion', 'item', 'rune', 'summoner_spell']
         retry: Optional variable specifying if local_data should be reloaded if the object cannot be found.
 
     Returns:
@@ -141,7 +152,7 @@ def get_translation(object_name: str, output_locale: str = 'en_US', minimum_scor
         output_locale: The language to translate to, with 'en_US' as the default value.
         minimum_score: Optional minimum ratio (between 0 and 100) under which the function retries or raises.
         input_locale: The language the input was in.
-        object_type: Optional boolean specifying the type of the object in [champion, item, rune].
+        object_type: Optional string in ['champion', 'item', 'rune', 'summoner_spell']
         retry: Optional variable specifying if local_data should be reloaded if the object cannot be found.
 
     Returns:

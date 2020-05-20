@@ -1,7 +1,5 @@
 import logging
 
-from lol_id_tools.local_data_parser import IdInfo
-
 dd_url = 'https://ddragon.leagueoflegends.com'
 
 
@@ -30,33 +28,43 @@ async def load_riot_objects(local_data, http_session, latest_version, locale: st
         parse_items(riot_data, locale, local_data)
     elif object_type == 'rune':
         parse_runes(riot_data, locale, local_data)
+    elif object_type == 'summoner_spell':
+        parse_summoner_spells(riot_data, locale, local_data)
 
 
 def get_ddragon_url(latest_version, locale: str, object_type: str):
     # Riot changed name for some reason
     if object_type == 'rune':
         object_type = 'runesReforged'
+    elif object_type == 'summoner_spell':
+        object_type = 'summoner'
 
     return f'{dd_url}/cdn/{latest_version}/data/{locale}/{object_type}.json'
 
 
 def parse_champions(data, locale, local_data):
     for champion_tag, champion_dict in data['data'].items():
-        local_data[locale][int(champion_dict['key'])] = IdInfo(champion_dict['name'], 'champion')
+        local_data[locale][int(champion_dict['key'])]['champion'] = champion_dict['name']
 
 
 def parse_items(data, locale, local_data):
     for item_id, item_dict in data['data'].items():
-        local_data[locale][int(item_id)] = IdInfo(item_dict['name'], 'item')
+        local_data[locale][int(item_id)]['item'] = item_dict['name']
 
 
 def parse_runes(data, locale, local_data):
     for rune_tree in data:
         # Adding tree names
-        local_data[locale][rune_tree['id']] = IdInfo(rune_tree['name'], 'rune')
+        local_data[locale][rune_tree['id']]['rune'] = rune_tree['name']
         for slot in rune_tree['slots']:
             for rune in slot['runes']:
-                local_data[locale][rune['id']] = IdInfo(rune['name'], 'rune')
+                local_data[locale][rune['id']]['rune'] = rune['name']
+
+
+def parse_summoner_spells(riot_data, locale, local_data):
+    for summoner_spell in riot_data['data']:
+        summoner_spell_info = riot_data['data'][summoner_spell]
+        local_data[locale][int(summoner_spell_info['key'])]['summoner_spell'] = summoner_spell_info['name']
 
 
 async def parse_cdragon_runes(local_data, http_session, locale):
@@ -69,6 +77,6 @@ async def parse_cdragon_runes(local_data, http_session, locale):
         cdragon_data = await response.json()
 
     for rune in cdragon_data:
-        # TODO Get perks in a cleaner way
+        # TODO Get perks only in a cleaner way
         if 5000 < rune['id'] < 5010:
-            local_data[locale][rune['id']] = IdInfo(rune['name'], 'rune')
+            local_data[locale][rune['id']]['rune'] = rune['name']

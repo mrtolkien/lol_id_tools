@@ -1,6 +1,8 @@
 from concurrent.futures.thread import ThreadPoolExecutor
 import lol_id_tools as lit
 
+# TODO Properly delete existing data first
+
 
 def translation_test_function(en_name, kr_name):
     assert lit.get_translation(en_name, 'ko_KR') == kr_name
@@ -77,6 +79,10 @@ def test_keystone():
 
 def test_perks():
     assert lit.get_name(5002) == 'Armor'
+
+
+def test_summoner_spell():
+    assert lit.get_name(21, object_type='summoner_spell') == 'Barrier'
 
 
 def test_parallel_updates():
