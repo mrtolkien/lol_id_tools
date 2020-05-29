@@ -47,15 +47,15 @@ def get_name(input_id: int, output_locale: str = "en_US", object_type=None, retr
     # First, we see if the object is there with the given constraints
     try:
         if not object_type:
-            if lod.riot_data[output_locale][input_id].__len__() > 1:
+            if lod.loaded_data[output_locale][input_id].__len__() > 1:
                 warnings.warn("Multiple objects with this ID found, please inform object_type")
             for object_type in ["champion", "item", "rune", "summoner_spell"]:
                 # Iterating this way to have a priority between object types
                 # TODO Rework that for more readable code
-                if object_type in lod.riot_data[output_locale][input_id]:
+                if object_type in lod.loaded_data[output_locale][input_id]:
                     break
 
-        return lod.riot_data[output_locale][input_id][object_type]
+        return lod.loaded_data[output_locale][input_id][object_type]
     except KeyError:
         pass
 
@@ -69,7 +69,7 @@ def get_name(input_id: int, output_locale: str = "en_US", object_type=None, retr
         loop.run_until_complete(loop.create_task(lod.reload_all_locales()))
         return get_name(input_id, output_locale, False)
 
-    raise KeyError(f"No associated Riot object with id {input_id} could not be found.")
+    raise KeyError(f"Riot object with id {input_id} could not be found.")
 
 
 class NoMatchingNameFound(Exception):

@@ -1,7 +1,12 @@
 from concurrent.futures.thread import ThreadPoolExecutor
 import lol_id_tools as lit
 
-# TODO Properly delete existing data first
+import os
+
+try:
+    os.remove(lit.lol_id_tools.lod.data_location)
+except FileNotFoundError:
+    pass
 
 
 def translation_test_function(en_name, kr_name):

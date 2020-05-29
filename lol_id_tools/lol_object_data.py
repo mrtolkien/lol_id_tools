@@ -24,21 +24,21 @@ class LolObjectData:
     # riot_data represents all the data that we got from Riot and is ghost loaded for module loading efficiency
     # it is used directly for id -> name matching
     # riot_data[locale][id][object_type][NameInfo]
-    _riot_data = None
+    _loaded_data = None
 
     @property
-    def riot_data(self):
-        if self._riot_data is None:
-            self._riot_data = self.unpickle_riot_data()
+    def loaded_data(self):
+        if self._loaded_data is None:
+            self._loaded_data = self.unpickle_loaded_data()
             self.recalculate_names_to_id()
-        return self._riot_data
+        return self._loaded_data
 
     # Pickling it to minimise web requests
-    def pickle_riot_data(self):
+    def pickle_loaded_data(self):
         with open(self.data_location, "wb+") as file:
-            pickle.dump(self.riot_data, file)
+            pickle.dump(self.loaded_data, file)
 
-    def unpickle_riot_data(self) -> Dict[str, Dict[int, Dict[str, str]]]:
+    def unpickle_loaded_data(self) -> Dict[str, Dict[int, Dict[str, str]]]:
         try:
             with open(self.data_location, "rb") as file:
                 return pickle.load(file)
@@ -68,11 +68,11 @@ class LolObjectData:
 
     # get_id() relies a lot on item names, so we also define a reversed dict with lowercase names as property
     def recalculate_names_to_id(self):
-        for locale in self.riot_data:
+        for locale in self.loaded_data:
             # First we write the info from riot_data
-            for id_ in self.riot_data[locale]:
-                for object_type in self.riot_data[locale][id_]:
-                    name = self.riot_data[locale][id_][object_type]
+            for id_ in self.loaded_data[locale]:
+                for object_type in self.loaded_data[locale][id_]:
+                    name = self.loaded_data[locale][id_][object_type]
                     self._names_to_id[name.lower()] = NameInfo(id_, object_type, locale)
 
             # Then we write the info from nicknames_data if we have loaded the locale
@@ -81,9 +81,9 @@ class LolObjectData:
                     clean_name = self.nickname_data[locale][nickname]
                     object_id = None
                     object_type = None
-                    for id_ in self.riot_data[locale]:
-                        for object_type in self.riot_data[locale][id_]:
-                            if self.riot_data[locale][id_][object_type] == clean_name:
+                    for id_ in self.loaded_data[locale]:
+                        for object_type in self.loaded_data[locale][id_]:
+                            if self.loaded_data[locale][id_][object_type] == clean_name:
                                 object_id = id_
                                 break
 
@@ -92,25 +92,25 @@ class LolObjectData:
     # Defining another property for more readable code
     @property
     def loaded_locales(self):
-        return [k for k in self.riot_data]
+        return [k for k in self.loaded_data]
 
     async def load_locale(self, locale, latest_version=None):
         if not latest_version:
             latest_version = await self.get_latest_version()
 
-        self.riot_data[locale] = defaultdict(dict)
+        self.loaded_data[locale] = defaultdict(dict)
 
         async with aiohttp.ClientSession() as http_session:
             coroutines = [
-                load_riot_objects(self.riot_data, http_session, latest_version, locale, object_type)
-                for object_type in ["champion", "runeReforged", "item", "summoner"]
+                load_riot_objects(self.loaded_data, http_session, latest_version, locale, object_type)
+                for object_type in ["champion", "runesReforged", "item", "summoner"]
             ]
-            coroutines.append(parse_cdragon_runes(self.riot_data, http_session, locale))
+            coroutines.append(parse_cdragon_runes(self.loaded_data, http_session, locale))
 
             await asyncio.wait([asyncio.create_task(c) for c in coroutines])
 
         self.recalculate_names_to_id()
-        self.pickle_riot_data()
+        self.pickle_loaded_data()
 
     async def reload_all_locales(self):
         self._names_to_id = {}

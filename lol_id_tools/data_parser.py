@@ -16,7 +16,7 @@ async def load_riot_objects(local_data, http_session, latest_version, locale: st
         http_session: ClientSession that issues the query
         latest_version: the latest version available on dd
         locale: the locale to load
-        object_type: the type of object to load
+        object_type: the type of object to load__
     """
     url = get_ddragon_url(latest_version, locale, object_type)
 
@@ -28,7 +28,7 @@ async def load_riot_objects(local_data, http_session, latest_version, locale: st
         parse_champions(riot_data, locale, local_data)
     elif object_type == "item":
         parse_items(riot_data, locale, local_data)
-    elif object_type == "runeReforged":
+    elif object_type == "runesReforged":
         parse_runes(riot_data, locale, local_data)
     elif object_type == "summoner":
         parse_summoner_spells(riot_data, locale, local_data)
