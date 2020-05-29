@@ -8,7 +8,7 @@ import logging
 import aiohttp
 from lol_id_tools.data_parser import load_riot_objects, parse_cdragon_runes
 
-save_folder = os.path.join(os.path.expanduser("~"), '.config', 'lol_id_tools')
+save_folder = os.path.join(os.path.expanduser("~"), ".config", "lol_id_tools")
 if not os.path.exists(save_folder):
     os.makedirs(save_folder)
 
@@ -18,7 +18,8 @@ class LolObjectData:
 
     Everything is class-wide to make sure multiple programs on the same machine use the same data.
     """
-    data_location = os.path.join(save_folder, 'loaded_data.pkl')
+
+    data_location = os.path.join(save_folder, "loaded_data.pkl")
 
     # riot_data represents all the data that we got from Riot and is ghost loaded for module loading efficiency
     # it is used directly for id -> name matching
@@ -34,12 +35,12 @@ class LolObjectData:
 
     # Pickling it to minimise web requests
     def pickle_riot_data(self):
-        with open(self.data_location, 'wb+') as file:
+        with open(self.data_location, "wb+") as file:
             pickle.dump(self.riot_data, file)
 
     def unpickle_riot_data(self) -> Dict[str, Dict[int, Dict[str, str]]]:
         try:
-            with open(self.data_location, 'rb') as file:
+            with open(self.data_location, "rb") as file:
                 return pickle.load(file)
         except FileNotFoundError:
             return {}
@@ -100,8 +101,10 @@ class LolObjectData:
         self.riot_data[locale] = defaultdict(dict)
 
         async with aiohttp.ClientSession() as http_session:
-            coroutines = [load_riot_objects(self.riot_data, http_session, latest_version, locale, object_type) for
-                          object_type in ['champion', 'rune', 'item', 'summoner_spell']]
+            coroutines = [
+                load_riot_objects(self.riot_data, http_session, latest_version, locale, object_type)
+                for object_type in ["champion", "runeReforged", "item", "summoner"]
+            ]
             coroutines.append(parse_cdragon_runes(self.riot_data, http_session, locale))
 
             await asyncio.wait([asyncio.create_task(c) for c in coroutines])
@@ -112,15 +115,16 @@ class LolObjectData:
     async def reload_all_locales(self):
         self._names_to_id = {}
         latest_version = await self.get_latest_version()
-        await asyncio.wait([asyncio.create_task(self.load_locale(locale, latest_version))
-                            for locale in self.loaded_locales])
+        await asyncio.wait(
+            [asyncio.create_task(self.load_locale(locale, latest_version)) for locale in self.loaded_locales]
+        )
 
     @staticmethod
     async def get_latest_version():
         async with aiohttp.ClientSession() as http_session:
-            url = 'https://ddragon.leagueoflegends.com/api/versions.json'
+            url = "https://ddragon.leagueoflegends.com/api/versions.json"
             async with http_session.get(url) as response:
-                logging.debug(f'Querying {url}')
+                logging.debug(f"Querying {url}")
                 data = await response.json()
             return data[0]
 

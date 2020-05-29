@@ -10,7 +10,7 @@ from lol_id_tools.lol_object_data import LolObjectData
 lod = LolObjectData()
 
 
-def get_name(input_id: int, output_locale: str = 'en_US', object_type=None, retry=False) -> str:
+def get_name(input_id: int, output_locale: str = "en_US", object_type=None, retry=False) -> str:
     """Gets you the name of the associated Riot object.
 
     If the chosen locale is not loaded in the database, it will be loaded before returning the result.
@@ -35,11 +35,11 @@ def get_name(input_id: int, output_locale: str = 'en_US', object_type=None, retr
     try:
         input_id = int(input_id)
     except ValueError:
-        raise ValueError('The input could not be cast to an integer.')
+        raise ValueError("The input could not be cast to an integer.")
 
-    # Riot uses 0 as a "no item" value
-    if input_id == 0:
-        return ''
+    # Riot uses 0 as a "no item" value and -1 as "no ban" value.
+    if input_id <= 0:
+        return ""
 
     # We start by cleaning up our locale
     output_locale = get_clean_locale(output_locale)
@@ -48,8 +48,8 @@ def get_name(input_id: int, output_locale: str = 'en_US', object_type=None, retr
     try:
         if not object_type:
             if lod.riot_data[output_locale][input_id].__len__() > 1:
-                warnings.warn('Multiple objects with this ID found, please inform object_type')
-            for object_type in ['champion', 'item', 'rune', 'summoner_spell']:
+                warnings.warn("Multiple objects with this ID found, please inform object_type")
+            for object_type in ["champion", "item", "rune", "summoner_spell"]:
                 # Iterating this way to have a priority between object types
                 # TODO Rework that for more readable code
                 if object_type in lod.riot_data[output_locale][input_id]:
@@ -69,15 +69,16 @@ def get_name(input_id: int, output_locale: str = 'en_US', object_type=None, retr
         loop.run_until_complete(loop.create_task(lod.reload_all_locales()))
         return get_name(input_id, output_locale, False)
 
-    raise KeyError(f'No associated Riot object with id {input_id} could not be found.')
+    raise KeyError(f"No associated Riot object with id {input_id} could not be found.")
 
 
 class NoMatchingNameFound(Exception):
     pass
 
 
-def get_id(input_str: str, minimum_score: int = 75,
-           input_locale: str = None, object_type: str = None, retry: bool = False) -> int:
+def get_id(
+    input_str: str, minimum_score: int = 75, input_locale: str = None, object_type: str = None, retry: bool = False
+) -> int:
     """Returns the best Riot ID guess for the given name.
 
     Will return the id that matches the query best. Best used in curated environments.
@@ -105,7 +106,7 @@ def get_id(input_str: str, minimum_score: int = 75,
     input_str = input_str.lower()
 
     # Handling some Leaguepedia special cases as having an ID of 0, might be stupid and should just raise
-    if not input_str or input_str == 'none' or input_str == 'loss of ban' or input_str == 'no item':
+    if not input_str or input_str == "none" or input_str == "loss of ban" or input_str == "no item":
         return 0
 
     # First, we try to directly get the object with the exact input name
@@ -117,8 +118,11 @@ def get_id(input_str: str, minimum_score: int = 75,
     possible_names_to_id = lod.names_to_id
 
     if object_type:
-        possible_names_to_id = {name: possible_names_to_id[name] for name in possible_names_to_id
-                                if possible_names_to_id[name].object_type == object_type}
+        possible_names_to_id = {
+            name: possible_names_to_id[name]
+            for name in possible_names_to_id
+            if possible_names_to_id[name].object_type == object_type
+        }
 
     if input_locale:
         locale = get_clean_locale(input_locale)
@@ -129,8 +133,11 @@ def get_id(input_str: str, minimum_score: int = 75,
             loop.run_until_complete(loop.create_task(lod.load_locale(locale)))
             return get_id(input_str, minimum_score, input_locale, object_type, False)
 
-        possible_names_to_id = {name: possible_names_to_id[name] for name in possible_names_to_id
-                                if possible_names_to_id[name].locale == locale}
+        possible_names_to_id = {
+            name: possible_names_to_id[name]
+            for name in possible_names_to_id
+            if possible_names_to_id[name].locale == locale
+        }
 
     name_guess, score = extractOne(input_str, possible_names_to_id.keys())
 
@@ -140,13 +147,19 @@ def get_id(input_str: str, minimum_score: int = 75,
             loop.run_until_complete(loop.create_task(lod.reload_all_locales()))
             return get_id(input_str, minimum_score, input_locale, object_type, False)
         else:
-            raise NoMatchingNameFound('No object name close enough to the input string found.')
+            raise NoMatchingNameFound("No object name close enough to the input string found.")
 
     return lod.names_to_id[name_guess].id
 
 
-def get_translation(object_name: str, output_locale: str = 'en_US', minimum_score: int = 75,
-                    input_locale: str = None, object_type: str = None, retry: bool = False) -> str:
+def get_translation(
+    object_name: str,
+    output_locale: str = "en_US",
+    minimum_score: int = 75,
+    input_locale: str = None,
+    object_type: str = None,
+    retry: bool = False,
+) -> str:
     """Returns the best translation guess for the given name.
 
     Will return the id that matches the query best. Best used in curated environments.
