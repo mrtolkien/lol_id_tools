@@ -1,3 +1,7 @@
+[![Generic badge](https://img.shields.io/github/workflow/status/mrtolkien/lol_id_tools/Python%20package)](https://shields.io/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
+
+
 # lol_id_tools
 An id tool for League of Legends with fuzzy string matching, nicknames, multiple locales, automatic updates, 
 and translation.
