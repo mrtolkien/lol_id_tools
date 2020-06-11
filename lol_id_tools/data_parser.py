@@ -46,7 +46,15 @@ def parse_champions(data, locale, local_data):
 
 def parse_items(data, locale, local_data):
     for item_id, item_dict in data["data"].items():
-        local_data[locale][int(item_id)]["item"] = item_dict["name"]
+        if "Enchantment" not in item_dict["name"]:
+            local_data[locale][int(item_id)]["item"] = item_dict["name"]
+        else:
+            for from_item_id in item_dict["from"]:
+                from_item = data["data"][from_item_id]
+                if "Jungle" in from_item["tags"]:
+                    local_data[locale][int(item_id)][
+                        "item"
+                    ] = f"{from_item['name']} - {item_dict['name'].replace('Enchantment: ', '')}"
 
 
 def parse_runes(data, locale, local_data):

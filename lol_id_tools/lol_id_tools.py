@@ -10,6 +10,7 @@ from lol_id_tools.lol_object_data import LolObjectData
 lod = LolObjectData()
 
 
+# TODO Add older patches support
 def get_name(input_id: int, output_locale: str = "en_US", object_type=None, retry=False) -> str:
     """Gets you the name of the associated Riot object.
 
@@ -48,7 +49,7 @@ def get_name(input_id: int, output_locale: str = "en_US", object_type=None, retr
     try:
         if not object_type:
             if lod.loaded_data[output_locale][input_id].__len__() > 1:
-                warnings.warn("Multiple objects with this ID found, please inform object_type")
+                warnings.warn("Multiple objects with this ID found, please inform object_type.")
             for object_type in ["champion", "item", "rune", "summoner_spell"]:
                 # Iterating this way to have a priority between object types
                 # TODO Rework that for more readable code

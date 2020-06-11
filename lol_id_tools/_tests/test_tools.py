@@ -78,6 +78,10 @@ def test_grasp_translation():
     translation_test_function("Grasp of the Undying", "착취의 손아귀")
 
 
+def test_jungle_item():
+    assert lit.get_name(1400) == "Stalker's Blade - Warrior"
+
+
 def test_keystone():
     assert lit.get_name(8000) == "Precision"
 
