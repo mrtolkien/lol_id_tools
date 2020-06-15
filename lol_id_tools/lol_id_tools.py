@@ -36,7 +36,7 @@ def get_name(input_id: int, output_locale: str = "en_US", object_type=None, retr
     try:
         input_id = int(input_id)
     except ValueError:
-        raise ValueError("The input could not be cast to an integer.")
+        raise ValueError(f"{input_id} could not be cast to an integer.")
 
     # Riot uses 0 as a "no item" value and -1 as "no ban" value.
     if input_id <= 0:
@@ -49,7 +49,7 @@ def get_name(input_id: int, output_locale: str = "en_US", object_type=None, retr
     try:
         if not object_type:
             if lod.loaded_data[output_locale][input_id].__len__() > 1:
-                warnings.warn("Multiple objects with this ID found, please inform object_type.")
+                warnings.warn(f"Multiple objects with ID {input_id} found, please inform object_type.")
             for object_type in ["champion", "item", "rune", "summoner_spell"]:
                 # Iterating this way to have a priority between object types
                 # TODO Rework that for more readable code
@@ -148,7 +148,7 @@ def get_id(
             loop.run_until_complete(loop.create_task(lod.reload_all_locales()))
             return get_id(input_str, minimum_score, input_locale, object_type, False)
         else:
-            raise NoMatchingNameFound("No object name close enough to the input string found.")
+            raise NoMatchingNameFound(f"No object name close enough to '{input_str}' found.")
 
     return lod.names_to_id[name_guess].id
 
