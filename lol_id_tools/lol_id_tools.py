@@ -49,7 +49,8 @@ def get_name(input_id: int, output_locale: str = "en_US", object_type=None, retr
     try:
         if not object_type:
             if lod.loaded_data[output_locale][input_id].__len__() > 1:
-                warnings.warn(f"Multiple objects with ID {input_id} found, please inform object_type.")
+                warning_text = f"Multiple objects with ID {input_id} found, please inform object_type."
+                warnings.warn(warning_text)
             for object_type in ["champion", "item", "rune", "summoner_spell"]:
                 # Iterating this way to have a priority between object types
                 # TODO Rework that for more readable code
@@ -61,16 +62,15 @@ def get_name(input_id: int, output_locale: str = "en_US", object_type=None, retr
         pass
 
     if output_locale not in lod.loaded_locales:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(loop.create_task(lod.load_locale(output_locale)))
+        asyncio.run(lod.load_locale(output_locale))
         return get_name(input_id, output_locale, False)
 
     if retry:
-        loop = asyncio.get_event_loop()
-        loop.run_until_complete(loop.create_task(lod.reload_all_locales()))
+        asyncio.run(lod.reload_all_locales())
         return get_name(input_id, output_locale, False)
 
-    raise KeyError(f"Riot object with id {input_id} could not be found.")
+    error_text = f"Riot object with id {input_id} could not be found."
+    raise KeyError(error_text)
 
 
 class NoMatchingNameFound(Exception):
@@ -144,11 +144,11 @@ def get_id(
 
     if score < minimum_score:
         if retry:
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(loop.create_task(lod.reload_all_locales()))
+            asyncio.run(lod.reload_all_locales())
             return get_id(input_str, minimum_score, input_locale, object_type, False)
         else:
-            raise NoMatchingNameFound(f"No object name close enough to '{input_str}' found.")
+            error_text = f"No object name close enough to '{input_str}' found."
+            raise NoMatchingNameFound(error_text)
 
     return lod.names_to_id[name_guess].id
 
