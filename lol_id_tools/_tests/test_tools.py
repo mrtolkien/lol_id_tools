@@ -16,7 +16,7 @@ def translation_test_function(en_name, kr_name):
 
 def test_mf_id():
     # Base case
-    assert lit.get_id("Miss Fortune", input_locale="en_US") == 21
+    assert lit.get_id("Miss Fortune") == 21
     # Case sensitivity test
     assert lit.get_id("missfortune") == 21
     # Typo test
@@ -40,7 +40,7 @@ def test_mf_translation():
 
 def test_botrk_id():
     # Base case
-    assert lit.get_id("Blade of the Ruined King", input_locale="en_US") == 3153
+    assert lit.get_id("Blade of the Ruined King") == 3153
     # Case sensitivity test
     assert lit.get_id("Blade of the ruined king") == 3153
     # Typo test
@@ -60,7 +60,7 @@ def test_botrk_translation():
 
 def test_grasp_id():
     # Base case
-    assert lit.get_id("Grasp of the Undying", input_locale="en_US") == 8437
+    assert lit.get_id("Grasp of the Undying") == 8437
     # Case sensitivity test
     assert lit.get_id("grasp of the undying") == 8437
     # Shorthand test

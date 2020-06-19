@@ -110,11 +110,15 @@ def get_id(
     if not input_str or input_str == "none" or input_str == "loss of ban" or input_str == "no item":
         return 0
 
-    # First, we try to directly get the object with the exact input name
+    # We try to directly get the object with the exact input name
     try:
         return lod.names_to_id[input_str].id
     except KeyError:
         pass
+
+    # If we run get_id() with no locale and nothing is loaded, we load english by default.
+    if not input_locale and not lod.loaded_locales:
+        asyncio.run(lod.load_locale('en_US'))
 
     possible_names_to_id = lod.names_to_id
 
@@ -130,8 +134,7 @@ def get_id(
 
         # If the locale was not loaded yet, we restart the process
         if locale not in lod.loaded_locales:
-            loop = asyncio.get_event_loop()
-            loop.run_until_complete(loop.create_task(lod.load_locale(locale)))
+            asyncio.run(lod.load_locale(locale))
             return get_id(input_str, minimum_score, input_locale, object_type, False)
 
         possible_names_to_id = {
@@ -186,3 +189,6 @@ def get_translation(
         get_translation('mf')
     """
     return get_name(get_id(object_name, minimum_score, input_locale, object_type, retry), output_locale)
+
+##
+
