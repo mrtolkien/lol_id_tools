@@ -1,12 +1,13 @@
 import os
-from concurrent.futures.thread import ThreadPoolExecutor
-
 import requests
 import pickle
+import logging
+
+from concurrent.futures.thread import ThreadPoolExecutor
 from collections import defaultdict
 from typing import Dict
+
 from lol_id_tools.local_data_parser import load_nickname_data, NameInfo
-import logging
 from lol_id_tools.data_parser import load_riot_objects, parse_cdragon_runes
 
 save_folder = os.path.join(os.path.expanduser("~"), ".config", "lol_id_tools")
