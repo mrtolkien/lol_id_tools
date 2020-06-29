@@ -1,4 +1,3 @@
-import asyncio
 import warnings
 
 from rapidfuzz.process import extractOne
@@ -62,11 +61,11 @@ def get_name(input_id: int, output_locale: str = "en_US", object_type=None, retr
         pass
 
     if output_locale not in lod.loaded_locales:
-        asyncio.run(lod.load_locale(output_locale))
+        lod.load_locale(output_locale)
         return get_name(input_id, output_locale, False)
 
     if retry:
-        asyncio.run(lod.reload_all_locales())
+        lod.reload_all_locales()
         return get_name(input_id, output_locale, False)
 
     error_text = f"Riot object with id {input_id} could not be found."
@@ -118,7 +117,7 @@ def get_id(
 
     # If we run get_id() with no locale and nothing is loaded, we load english by default.
     if not input_locale and not lod.loaded_locales:
-        asyncio.run(lod.load_locale('en_US'))
+        lod.load_locale('en_US')
 
     possible_names_to_id = lod.names_to_id
 
@@ -134,7 +133,7 @@ def get_id(
 
         # If the locale was not loaded yet, we restart the process
         if locale not in lod.loaded_locales:
-            asyncio.run(lod.load_locale(locale))
+            lod.load_locale(locale)
             return get_id(input_str, minimum_score, input_locale, object_type, False)
 
         possible_names_to_id = {
@@ -147,7 +146,7 @@ def get_id(
 
     if score < minimum_score:
         if retry:
-            asyncio.run(lod.reload_all_locales())
+            lod.reload_all_locales()
             return get_id(input_str, minimum_score, input_locale, object_type, False)
         else:
             error_text = f"No object name close enough to '{input_str}' found."

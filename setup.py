@@ -13,7 +13,7 @@ setuptools.setup(
     url="https://github.com/mrtolkien/lol_id_tools",
     license="MIT",
     author="Tolki",
-    install_requires=["rapidfuzz", "aiohttp"],
+    install_requires=["rapidfuzz", "requests"],
     author_email="gary.mialaret+pypi@gmail.com",
     description="An id tool for League of Legends with fuzzy string matching, nicknames, multiple locales, "
     "automatic updates, and translation.",

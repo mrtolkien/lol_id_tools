@@ -1,11 +1,12 @@
 import os
+from concurrent.futures.thread import ThreadPoolExecutor
+
+import requests
 import pickle
 from collections import defaultdict
 from typing import Dict
 from lol_id_tools.local_data_parser import load_nickname_data, NameInfo
-import asyncio
 import logging
-import aiohttp
 from lol_id_tools.data_parser import load_riot_objects, parse_cdragon_runes
 
 save_folder = os.path.join(os.path.expanduser("~"), ".config", "lol_id_tools")
@@ -94,42 +95,46 @@ class LolObjectData:
     def loaded_locales(self):
         return [k for k in self.loaded_data]
 
-    async def load_locale(self, locale, latest_version=None):
+    def load_locale(self, locale, latest_version=None):
         if not latest_version:
-            latest_version = await self.get_latest_version()
+            latest_version = self.get_latest_version()
 
         self.loaded_data[locale] = defaultdict(dict)
 
-        async with aiohttp.ClientSession() as http_session:
-            coroutines = [
-                load_riot_objects(self.loaded_data, http_session, latest_version, locale, object_type)
-                for object_type in ["champion", "runesReforged", "item", "summoner"]
-            ]
-            coroutines.append(parse_cdragon_runes(self.loaded_data, http_session, locale))
+        with ThreadPoolExecutor() as executor:
+            # TODO Just call different functions?
+            for object_type in ["champion", "runesReforged", "item", "summoner"]:
+                executor.submit(load_riot_objects, self.loaded_data, latest_version, locale, object_type)
 
-            await asyncio.wait([asyncio.create_task(c) for c in coroutines])
+            # Cdragon is different enough that it’s handled by itself
+            executor.submit(parse_cdragon_runes, self.loaded_data, locale)
 
         self.recalculate_names_to_id()
         self.pickle_loaded_data()
 
-    async def reload_all_locales(self):
+    def reload_all_locales(self):
         self._names_to_id = {}
-        latest_version = await self.get_latest_version()
-        await asyncio.wait(
-            [asyncio.create_task(self.load_locale(locale, latest_version)) for locale in self.loaded_locales]
-        )
+        latest_version = self.get_latest_version()
+
+        with ThreadPoolExecutor() as executor:
+            for locale in self.loaded_locales:
+                executor.submit(self.load_locale, locale, latest_version)
 
     @staticmethod
-    async def get_latest_version():
-        async with aiohttp.ClientSession() as http_session:
-            url = "https://ddragon.leagueoflegends.com/api/versions.json"
-            async with http_session.get(url) as response:
-                logging.debug(f"Querying {url}")
-                data = await response.json()
-            return data[0]
+    def get_latest_version():
+        """Gets the latest version available on ddragon.
+        """
+        url = "https://ddragon.leagueoflegends.com/api/versions.json"
+
+        response = requests.get(url)
+        logging.debug(f"Querying {url}")
+
+        data = response.json()
+        return data[0]
 
     def delete_local_data(self):
-        """Mainly used for testing purposes"""
+        """Mainly used for testing purposes
+        """
         try:
             os.remove(self.data_location)
         except FileNotFoundError:

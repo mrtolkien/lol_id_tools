@@ -1,11 +1,12 @@
 import logging
+import requests
 
 dd_url = "https://ddragon.leagueoflegends.com"
 
 # TODO Move data from ddragon to cdragon to get ID of removed items too
 
 
-async def load_riot_objects(local_data, http_session, latest_version, locale: str, object_type: str):
+def load_riot_objects(local_data, latest_version, locale: str, object_type: str):
     """Loads the selected type of objects in the database.
 
     Queries the Riot servers for the local_data then writes it to the database.
@@ -13,16 +14,16 @@ async def load_riot_objects(local_data, http_session, latest_version, locale: st
 
     Args:
         local_data: Dictionary to write to
-        http_session: ClientSession that issues the query
         latest_version: the latest version available on dd
         locale: the locale to load
         object_type: the type of object to load__
     """
     url = get_ddragon_url(latest_version, locale, object_type)
 
-    async with http_session.get(url) as response:
-        logging.debug(f"Querying {url}")
-        riot_data = await response.json()
+    logging.debug(f"Querying {url}")
+    response = requests.get(url)
+
+    riot_data = response.json()
 
     if object_type == "champion":
         parse_champions(riot_data, locale, local_data)
@@ -72,14 +73,14 @@ def parse_summoner_spells(riot_data, locale, local_data):
         local_data[locale][int(summoner_spell_info["key"])]["summoner_spell"] = summoner_spell_info["name"]
 
 
-async def parse_cdragon_runes(local_data, http_session, locale):
+def parse_cdragon_runes(local_data, locale):
     # TODO Clean this up
     cdragon_locale = locale.lower() if locale != "en_US" else "default"
     url = f"http://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/{cdragon_locale}/v1/perks.json"
 
-    async with http_session.get(url) as response:
-        logging.debug(f"Querying {url}")
-        cdragon_data = await response.json()
+    logging.debug(f"Querying {url}")
+    response = requests.get(url)
+    cdragon_data = response.json()
 
     for rune in cdragon_data:
         # TODO Get perks only in a cleaner way
