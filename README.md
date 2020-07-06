@@ -1,4 +1,5 @@
-[![Generic badge](https://img.shields.io/github/workflow/status/mrtolkien/lol_id_tools/Python%20package)](https://shields.io/) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+![Python package](https://github.com/mrtolkien/lol_id_tools/workflows/Python%20package/badge.svg)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 
 
