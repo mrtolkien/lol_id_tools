@@ -103,4 +103,3 @@ for more code examples.
 ## Notes
 
 Data is saved in `~/.config/lol_id_tools` for offline usage and faster startup after first use. 
-It uses `sqlite3` and `sqlalchemy` to query the data.
