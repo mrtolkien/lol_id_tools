@@ -3,6 +3,7 @@ import warnings
 from rapidfuzz.process import extractOne
 
 from lol_id_tools.local_data_parser import get_clean_locale
+from lol_id_tools.logger import lit_logger
 from lol_id_tools.lol_object_data import LolObjectData
 
 # Instantiating a LolObjectData object is very light as all its fields are ghost loaded.
@@ -10,7 +11,9 @@ lod = LolObjectData()
 
 
 # TODO Add older patches support
-def get_name(input_id: int, output_locale: str = "en_US", object_type=None, retry=False) -> str:
+def get_name(
+    input_id: int, output_locale: str = "en_US", object_type=None, retry=True
+) -> str:
     """Gets you the name of the associated Riot object.
 
     If the chosen locale is not loaded in the database, it will be loaded before returning the result.
@@ -19,7 +22,7 @@ def get_name(input_id: int, output_locale: str = "en_US", object_type=None, retr
         input_id: Riot ID of the object.
         output_locale: Locale of the output.
         object_type: specifics the object type you want the name of, in ['champion', 'item', 'rune', 'summoner_spell']
-        retry: Optional variable specifying if local_data should be reloaded if the object cannot be found.
+        retry: Optional variable specifying if local_data should be reloaded once if the object cannot be found.
 
     Returns:
         The matching object name.
@@ -62,11 +65,11 @@ def get_name(input_id: int, output_locale: str = "en_US", object_type=None, retr
 
     if output_locale not in lod.loaded_locales:
         lod.load_locale(output_locale)
-        return get_name(input_id, output_locale, False)
+        return get_name(input_id, output_locale, retry=False)
 
     if retry:
         lod.reload_all_locales()
-        return get_name(input_id, output_locale, False)
+        return get_name(input_id, output_locale, retry=False)
 
     error_text = f"Riot object with id {input_id} could not be found."
     raise KeyError(error_text)
@@ -77,7 +80,11 @@ class NoMatchingNameFound(Exception):
 
 
 def get_id(
-    input_str: str, minimum_score: int = 75, input_locale: str = None, object_type: str = None, retry: bool = False
+    input_str: str,
+    minimum_score: int = 75,
+    input_locale: str = None,
+    object_type: str = None,
+    retry: bool = True,
 ) -> int:
     """Returns the best Riot ID guess for the given name.
 
@@ -106,7 +113,12 @@ def get_id(
     input_str = input_str.lower()
 
     # Handling some Leaguepedia special cases as having an ID of 0, might be stupid and should just raise
-    if not input_str or input_str == "none" or input_str == "loss of ban" or input_str == "no item":
+    if (
+        not input_str
+        or input_str == "none"
+        or input_str == "loss of ban"
+        or input_str == "no item"
+    ):
         return 0
 
     # We try to directly get the object with the exact input name
@@ -117,7 +129,7 @@ def get_id(
 
     # If we run get_id() with no locale and nothing is loaded, we load english by default.
     if not input_locale and not lod.loaded_locales:
-        lod.load_locale('en_US')
+        lod.load_locale("en_US")
 
     possible_names_to_id = lod.names_to_id
 
@@ -134,7 +146,9 @@ def get_id(
         # If the locale was not loaded yet, we restart the process
         if locale not in lod.loaded_locales:
             lod.load_locale(locale)
-            return get_id(input_str, minimum_score, input_locale, object_type, False)
+            return get_id(
+                input_str, minimum_score, input_locale, object_type, retry=False
+            )
 
         possible_names_to_id = {
             name: possible_names_to_id[name]
@@ -144,10 +158,15 @@ def get_id(
 
     name_guess, score = extractOne(input_str, possible_names_to_id.keys())
 
+    # TODO Handle multiple objects having the same score (happens with substrings of longer names)
+    lit_logger.info(f"Name guess was: {name_guess}")
+
     if score < minimum_score:
         if retry:
             lod.reload_all_locales()
-            return get_id(input_str, minimum_score, input_locale, object_type, False)
+            return get_id(
+                input_str, minimum_score, input_locale, object_type, retry=False
+            )
         else:
             error_text = f"No object name close enough to '{input_str}' found."
             raise NoMatchingNameFound(error_text)
@@ -161,7 +180,7 @@ def get_translation(
     minimum_score: int = 75,
     input_locale: str = None,
     object_type: str = None,
-    retry: bool = False,
+    retry: bool = True,
 ) -> str:
     """Returns the best translation guess for the given name.
 
@@ -187,7 +206,10 @@ def get_translation(
         get_translation('Miss Fortune', 'ko_KR')
         get_translation('mf')
     """
-    return get_name(get_id(object_name, minimum_score, input_locale, object_type, retry), output_locale)
+    return get_name(
+        get_id(object_name, minimum_score, input_locale, object_type, retry),
+        output_locale,
+    )
+
 
 ##
-

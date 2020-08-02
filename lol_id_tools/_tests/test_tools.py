@@ -16,11 +16,11 @@ def translation_test_function(en_name, kr_name):
 
 def test_mf_id():
     # Base case
-    assert lit.get_id("Miss Fortune") == 21
+    assert lit.get_id("Miss Fortune", object_type="champion") == 21
     # Case sensitivity test
-    assert lit.get_id("missfortune") == 21
+    assert lit.get_id("missfortune", object_type="champion") == 21
     # Typo test
-    assert lit.get_id("misforune") == 21
+    assert lit.get_id("misforune", object_type="champion") == 21
 
     # Different languages test
     assert lit.get_id("미스 포츈", input_locale="ko_KR") == 21
@@ -31,7 +31,7 @@ def test_mf_id():
     assert lit.get_id("MF") == 21
 
     # Get name from ID test
-    assert lit.get_name(21) == "Miss Fortune"
+    assert lit.get_name(21, object_type="champion") == "Miss Fortune"
 
 
 def test_mf_translation():
@@ -51,7 +51,7 @@ def test_botrk_id():
     assert lit.get_id("botrk") == 3153
 
     # Name test
-    assert lit.get_name(3153) == "Blade of the Ruined King"
+    assert lit.get_name(3153, object_type="item") == "Blade of the Ruined King"
 
 
 def test_botrk_translation():
@@ -64,14 +64,14 @@ def test_grasp_id():
     # Case sensitivity test
     assert lit.get_id("grasp of the undying") == 8437
     # Shorthand test
-    assert lit.get_id("grasp") == 8437
+    assert lit.get_id("undying") == 8437
     # Typo test
     assert lit.get_id("graps of the undying") == 8437
     # Korean test
     assert lit.get_id("착취의 손아귀") == 8437
 
     # Name test
-    assert lit.get_name(8437) == "Grasp of the Undying"
+    assert lit.get_name(8437, object_type="rune") == "Grasp of the Undying"
 
 
 def test_grasp_translation():

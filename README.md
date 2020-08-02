@@ -9,7 +9,7 @@ and translation.
 
 The package relies on [rapidfuzz](https://github.com/rhasspy/rapidfuzz) for string matching.
 
-This documentation pertains to `v1.0.0`, and future releases should stay compatible with its syntax.
+This documentation pertains to version `1.0.0` and forward.
 
 # Installation
 

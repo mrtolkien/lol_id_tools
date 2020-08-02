@@ -7,7 +7,7 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
 
 setuptools.setup(
     name="lol_id_tools",
-    version="1.5.1",
+    version="1.6.0",
     packages=["lol_id_tools", "lol_id_tools/local_data"],
     package_data={"": ["*.json"],},
     url="https://github.com/mrtolkien/lol_id_tools",

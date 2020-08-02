@@ -1,4 +1,4 @@
-import logging
+from lol_id_tools.logger import lit_logger
 import requests
 
 dd_url = "https://ddragon.leagueoflegends.com"
@@ -20,7 +20,7 @@ def load_riot_objects(local_data, latest_version, locale: str, object_type: str)
     """
     url = get_ddragon_url(latest_version, locale, object_type)
 
-    logging.debug(f"Querying {url}")
+    lit_logger.debug(f"Querying {url}")
     response = requests.get(url)
 
     riot_data = response.json()
@@ -78,7 +78,7 @@ def parse_cdragon_runes(local_data, locale):
     cdragon_locale = locale.lower() if locale != "en_US" else "default"
     url = f"http://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/{cdragon_locale}/v1/perks.json"
 
-    logging.debug(f"Querying {url}")
+    lit_logger.debug(f"Querying {url}")
     response = requests.get(url)
     cdragon_data = response.json()
 
