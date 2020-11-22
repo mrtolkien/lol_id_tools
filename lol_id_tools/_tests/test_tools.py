@@ -55,7 +55,7 @@ def test_botrk_id():
 
 
 def test_botrk_translation():
-    translation_test_function("Blade of the Ruined King", "몰락한 왕의 검")
+    translation_test_function("Blade of The Ruined King", "몰락한 왕의 검")
 
 
 def test_grasp_id():

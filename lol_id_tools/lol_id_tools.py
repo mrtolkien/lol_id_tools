@@ -1,4 +1,5 @@
 import warnings
+from typing import Optional
 
 from rapidfuzz.process import extractOne
 
@@ -12,17 +13,18 @@ lod = LolObjectData()
 
 # TODO Add older patches support
 def get_name(
-    input_id: int, output_locale: str = "en_US", object_type=None, retry=True
-) -> str:
+    input_id: int, output_locale: str = "en_US", object_type=None, retry=True, fallback_to_none=True
+) -> Optional[str]:
     """Gets you the name of the associated Riot object.
 
     If the chosen locale is not loaded in the database, it will be loaded before returning the result.
 
     Args:
-        input_id: Riot ID of the object.
-        output_locale: Locale of the output.
+        input_id: Riot ID of the object
+        output_locale: Locale of the output
         object_type: specifics the object type you want the name of, in ['champion', 'item', 'rune', 'summoner_spell']
-        retry: Optional variable specifying if local_data should be reloaded once if the object cannot be found.
+        retry: Optional variable specifying if local_data should be reloaded once if the object cannot be found
+        fallback_to_none: whether the tool returns None in case of a KeyError
 
     Returns:
         The matching object name.
@@ -72,7 +74,12 @@ def get_name(
         return get_name(input_id, output_locale, retry=False)
 
     error_text = f"Riot object with id {input_id} could not be found."
-    raise KeyError(error_text)
+
+    if not fallback_to_none:
+        raise KeyError(error_text)
+    else:
+        warnings.warn(error_text)
+        return None
 
 
 class NoMatchingNameFound(Exception):
@@ -113,12 +120,7 @@ def get_id(
     input_str = input_str.lower()
 
     # Handling some Leaguepedia special cases as having an ID of 0, might be stupid and should just raise
-    if (
-        not input_str
-        or input_str == "none"
-        or input_str == "loss of ban"
-        or input_str == "no item"
-    ):
+    if not input_str or input_str == "none" or input_str == "loss of ban" or input_str == "no item":
         return 0
 
     # We try to directly get the object with the exact input name
@@ -146,9 +148,7 @@ def get_id(
         # If the locale was not loaded yet, we restart the process
         if locale not in lod.loaded_locales:
             lod.load_locale(locale)
-            return get_id(
-                input_str, minimum_score, input_locale, object_type, retry=False
-            )
+            return get_id(input_str, minimum_score, input_locale, object_type, retry=False)
 
         possible_names_to_id = {
             name: possible_names_to_id[name]
@@ -159,14 +159,12 @@ def get_id(
     name_guess, score = extractOne(input_str, possible_names_to_id.keys())
 
     # TODO Handle multiple objects having the same score (happens with substrings of longer names)
-    lit_logger.info(f"Name guess was: {name_guess}")
+    lit_logger.info(f"Name guess was {name_guess} from {input_str}")
 
     if score < minimum_score:
         if retry:
             lod.reload_all_locales()
-            return get_id(
-                input_str, minimum_score, input_locale, object_type, retry=False
-            )
+            return get_id(input_str, minimum_score, input_locale, object_type, retry=False)
         else:
             error_text = f"No object name close enough to '{input_str}' found."
             raise NoMatchingNameFound(error_text)
@@ -187,29 +185,23 @@ def get_translation(
     Will return the id that matches the query best. Best used in curated environments.
 
     Args:
-        object_name: Search string.
-        output_locale: The language to translate to, with 'en_US' as the default value.
-        minimum_score: Optional minimum ratio (between 0 and 100) under which the function retries or raises.
-        input_locale: The language the input was in.
+        object_name: Search string
+        output_locale: The language to translate to, with 'en_US' as the default value
+        minimum_score: Optional minimum ratio (between 0 and 100) under which the function retries or raises
+        input_locale: The language the input was in
         object_type: Optional string in ['champion', 'item', 'rune', 'summoner_spell']
-        retry: Optional variable specifying if local_data should be reloaded if the object cannot be found.
+        retry: Optional variable specifying if local_data should be reloaded if the object cannot be found
 
     Returns:
-        The matching object ID.
+        The matching object ID
 
     Raises:
-        NoResultFound: No result scored above the minimum_score.
-        ValueError: One of the input locales was not understood properly.
+        NoResultFound: No result scored above the minimum_score
+        ValueError: One of the input locales was not understood properly
 
     Usage example:
         get_translation('미스 포츈')
         get_translation('Miss Fortune', 'ko_KR')
         get_translation('mf')
     """
-    return get_name(
-        get_id(object_name, minimum_score, input_locale, object_type, retry),
-        output_locale,
-    )
-
-
-##
+    return get_name(get_id(object_name, minimum_score, input_locale, object_type, retry), output_locale,)
