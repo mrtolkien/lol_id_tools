@@ -2,17 +2,13 @@ import pytest
 import lol_id_tools
 
 
-# TODO Add jungle items and patch tests
-# TODO Rewrite this test and make it work when supplying the 10.10 patch
-# def test_jungle_item():
-#     assert lit.get_name(1400) == "Stalker's Blade - Warrior"
-
-
 @pytest.mark.parametrize(
     "input_str,input_locale,object_type,output",
     [
+        # Empty items
         ("", "", "", 0),
         ("no item", "", "", 0),
+        # Standard test with typos and nicknames
         ("Miss Fortune", "en_US", "champion", 21),
         ("MF", "en_US", "champion", 21),
         ("missfortune", "en_US", "champion", 21),
@@ -32,6 +28,10 @@ import lol_id_tools
         ("precision", "en_US", "rune", 8000),
         ("armor", "en_US", "rune", 5002),
         ("barrier", "en_US", "summoner_spell", 21),
+        # Items removed in recent versions
+        ("Stalker's Blade - Warrior", "en_US", "item", 1400),
+        ("Iceborn Gauntlet", "en_US", "item", 3025),
+        ("Hextech Gunblade", "en_US", "item", 3146),
     ],
 )
 def test_get_id(input_str, input_locale, object_type, output):
