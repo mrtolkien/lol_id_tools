@@ -54,7 +54,6 @@ def get_name(
         if not object_type:
             if lod.loaded_data[output_locale][input_id].__len__() > 1:
                 warning_text = f"Multiple objects with ID {input_id} found, please inform object_type."
-                warnings.warn(warning_text)
                 lit_logger.warning(warning_text)
             for object_type in ["champion", "item", "rune", "summoner_spell"]:
                 # Iterating this way to have a priority between object types
@@ -79,7 +78,6 @@ def get_name(
     if not fallback_to_none:
         raise KeyError(error_text)
     else:
-        warnings.warn(error_text)
         lit_logger.warning(error_text)
         return None
 
