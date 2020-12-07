@@ -1,4 +1,3 @@
-import warnings
 from typing import Optional
 
 from rapidfuzz.process import extractOne

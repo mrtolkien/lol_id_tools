@@ -15,6 +15,8 @@ def translation_test_function(en_name, kr_name):
 
 
 def test_mf_id():
+    # TODO Split that into multiple tests, and use tests parameters to separate the cases
+
     # Base case
     assert lit.get_id("Miss Fortune", object_type="champion") == 21
     # Case sensitivity test
@@ -51,7 +53,7 @@ def test_botrk_id():
     assert lit.get_id("botrk") == 3153
 
     # Name test
-    assert lit.get_name(3153, object_type="item") == "Blade of the Ruined King"
+    assert lit.get_name(3153, object_type="item") == "Blade of The Ruined King"
 
 
 def test_botrk_translation():
@@ -78,8 +80,9 @@ def test_grasp_translation():
     translation_test_function("Grasp of the Undying", "착취의 손아귀")
 
 
-def test_jungle_item():
-    assert lit.get_name(1400) == "Stalker's Blade - Warrior"
+# TODO Rewrite this test and make it work when supplying the 10.10 patch
+# def test_jungle_item():
+#     assert lit.get_name(1400) == "Stalker's Blade - Warrior"
 
 
 def test_keystone():
