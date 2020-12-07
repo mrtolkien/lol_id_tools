@@ -5,9 +5,11 @@ verify_ssl = true
 
 [dev-packages]
 pytest = "*"
+cassiopeia = "*"
 
 [packages]
-rapidfuzz = "*"
+# TODO Update rapidfuzz to latest version
+rapidfuzz = "0.12.5"
 requests = "*"
 
 [requires]

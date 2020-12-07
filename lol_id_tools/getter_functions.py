@@ -2,15 +2,14 @@ from typing import Optional
 
 from rapidfuzz.process import extractOne
 
-from lol_id_tools.local_data_parser import get_clean_locale
+from lol_id_tools.caching.data_parser_local import get_clean_locale
 from lol_id_tools.logger import lit_logger
-from lol_id_tools.lol_object_data import LolObjectData
+from lol_id_tools.caching.data_cache import LolObjectData
 
 # Instantiating a LolObjectData object is very light as all its fields are ghost loaded.
 lod = LolObjectData()
 
 
-# TODO Add older patches support
 def get_name(
     input_id: int, output_locale: str = "en_US", object_type=None, retry=True, fallback_to_none=True
 ) -> Optional[str]:

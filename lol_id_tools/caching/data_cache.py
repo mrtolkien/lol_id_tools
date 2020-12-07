@@ -7,8 +7,8 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from collections import defaultdict
 from typing import Dict
 
-from lol_id_tools.local_data_parser import load_nickname_data, NameInfo
-from lol_id_tools.data_parser import load_riot_objects, parse_cdragon_runes
+from lol_id_tools.caching.data_parser_local import load_nickname_data, NameInfo
+from lol_id_tools.caching.data_parser_riot import load_riot_objects, parse_cdragon_runes
 
 save_folder = os.path.join(os.path.expanduser("~"), ".config", "lol_id_tools")
 if not os.path.exists(save_folder):
@@ -20,6 +20,7 @@ class LolObjectData:
 
     Everything is class-wide to make sure multiple programs on the same machine use the same data.
     """
+    # TODO Remove the ghost loading, it creates buggy races situations
 
     data_location = os.path.join(save_folder, "loaded_data.pkl")
 
