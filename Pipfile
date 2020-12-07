@@ -9,6 +9,7 @@ cassiopeia = "*"
 
 [packages]
 # TODO Update rapidfuzz to latest version
+# TODO Actually, drop pipenv and use requirements.txt + tox
 rapidfuzz = "0.12.5"
 requests = "*"
 

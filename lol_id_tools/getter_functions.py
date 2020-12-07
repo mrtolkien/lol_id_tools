@@ -154,7 +154,7 @@ def get_id(
             if possible_names_to_id[name].locale == locale
         }
 
-    name_guess, score = extractOne(input_str, possible_names_to_id.keys())
+    name_guess, score, idx = extractOne(input_str, possible_names_to_id.keys())
 
     # TODO Handle multiple objects having the same score (happens with substrings of longer names)
     lit_logger.info(f"Name guess was {name_guess} from {input_str}")
