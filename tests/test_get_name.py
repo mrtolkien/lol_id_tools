@@ -8,6 +8,8 @@ import lol_id_tools
         # Empty item slots
         (0, None, None, ""),
         (-1, None, None, ""),
+        # ID not matching to any item
+        (123456789, "en_US", "champion", None),
         # Standard tests
         (21, "en_US", "champion", "Miss Fortune"),
         (21, "ko_KR", "champion", "미스 포츈"),
@@ -33,3 +35,6 @@ def test_get_name(input_id, output_locale, object_type, output):
 )
 def test_botrk_patches(patch, name):
     assert lol_id_tools.get_name(3153, object_type="item", patch=patch) == name
+
+
+# TODO Add a check without the fallback to None and check it raises

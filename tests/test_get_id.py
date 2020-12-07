@@ -36,3 +36,8 @@ import lol_id_tools
 )
 def test_get_id(input_str, input_locale, object_type, output):
     assert lol_id_tools.get_id(input_str, input_locale=input_locale, object_type=object_type) == output
+
+# TODO Write non-working values and check they properly raise
+# Non-working values
+# ("QWERTYUIOP", "en_US", "champion", None),
+# ("TEST", "en_US", "champion", None),
