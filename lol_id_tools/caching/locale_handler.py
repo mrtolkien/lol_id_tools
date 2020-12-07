@@ -11,10 +11,12 @@ def get_clean_locale(locale: str):
     """Returns a "clean" locale from a user-entered input.
     """
     # We check if the locale is "clean"
+    # TODO lowercase support (easier to use)
     if locale in locales_dict.values():
         return locale
 
     # If not, we match it to our language list (hardcoded at the moment)
+    # TODO Add region (NA/KR/EUW)
     matching_language, score, idx = extractOne(locale, locales_dict.keys())
     if score > 80:
         return locales_dict[matching_language]
