@@ -2,45 +2,47 @@ from typing import Optional
 
 from rapidfuzz.process import extractOne
 
-from lol_id_tools.caching.data_parser_local import get_clean_locale
+from lol_id_tools.caching.locale_handler import get_clean_locale
 from lol_id_tools.logger import lit_logger
-from lol_id_tools.caching.data_cache import LolObjectData
+from lol_id_tools.caching.data_cache import LolObjectsData
 
 # Instantiating a LolObjectData object is very light as all its fields are ghost loaded.
-lod = LolObjectData()
+lod = LolObjectsData()
 
 
 def get_name(
-    input_id: int, output_locale: str = "en_US", object_type=None, retry=True, fallback_to_none=True
+    input_id: int, output_locale: str = "en_US", patch=None, object_type=None, retry=True, fallback_to_none=True
 ) -> Optional[str]:
-    """Gets you the name of the associated Riot object.
+    """Gets the name of the Riot object with the ID supplied
 
     If the chosen locale is not loaded in the database, it will be loaded before returning the result.
 
     Args:
         input_id: Riot ID of the object
-        output_locale: Locale of the output
-        object_type: specifics the object type you want the name of, in ['champion', 'item', 'rune', 'summoner_spell']
+        output_locale: Locale of the output, defaults to en_US
+        patch: The patch to query, defaults to the latest patch
+        object_type: The object type you want the name of, in ['champion', 'item', 'rune', 'summoner_spell']
         retry: Optional variable specifying if local_data should be reloaded once if the object cannot be found
-        fallback_to_none: whether the tool returns None in case of a KeyError
+        fallback_to_none: whether the tool returns None or raises a KeyError if the object is not found
 
     Returns:
-        The matching object name.
+        The matching object name
 
     Raises:
-        KeyError: The corresponding object was not found.
-        ValueError: The locale was not understood properly.
+        KeyError: No corresponding object was found
+        ValueError: The locale was not understood properly
 
     Usage example:
         get_name(21)
         get_name(21, 'ko_KR')
+        get_name(21, 'korean')
     """
     try:
         input_id = int(input_id)
     except ValueError:
-        raise ValueError(f"{input_id} could not be cast to an integer.")
+        raise ValueError(f"{input_id} could not be cast to an integer")
 
-    # Riot uses 0 as a "no item" value and -1 as "no ban" value.
+    # Riot uses 0 as a "no item" value and -1 as "no ban" value, which we both represent with an empty string
     if input_id <= 0:
         return ""
 
@@ -51,8 +53,9 @@ def get_name(
     try:
         if not object_type:
             if lod.loaded_data[output_locale][input_id].__len__() > 1:
-                warning_text = f"Multiple objects with ID {input_id} found, please inform object_type."
+                warning_text = f"Multiple objects with ID {input_id} found, please inform object_type"
                 lit_logger.warning(warning_text)
+
             for object_type in ["champion", "item", "rune", "summoner_spell"]:
                 # Iterating this way to have a priority between object types
                 # TODO Rework that for more readable code
@@ -60,6 +63,7 @@ def get_name(
                     break
 
         return lod.loaded_data[output_locale][input_id][object_type]
+
     except KeyError:
         pass
 
