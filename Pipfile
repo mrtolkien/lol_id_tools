@@ -7,7 +7,7 @@ verify_ssl = true
 pytest = "*"
 
 [packages]
-rapidfuzz = "*"
+rapidfuzz = ">=0.14.0"
 requests = "*"
 
 [requires]

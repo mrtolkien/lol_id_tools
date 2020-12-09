@@ -26,7 +26,7 @@ def get_clean_locale(locale: str):
     if locale in locales_dict.values():
         return locale
 
-    matching_language, score = extractOne(locale, locales_dict.keys())
+    matching_language, score, idx = extractOne(locale, locales_dict.keys())
     if score > 80:
         return locales_dict[matching_language]
     else:
