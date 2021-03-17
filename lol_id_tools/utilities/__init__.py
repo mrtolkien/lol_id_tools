@@ -1,0 +1,1 @@
+from lol_id_tools.utilities.delete_cache import delete_cache

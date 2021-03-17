@@ -1,0 +1,3 @@
+def delete_cache():
+    # TODO
+    ...
