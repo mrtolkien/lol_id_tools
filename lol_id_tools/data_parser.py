@@ -6,7 +6,7 @@ dd_url = "https://ddragon.leagueoflegends.com"
 # TODO Move data from ddragon to cdragon to get ID of removed items too
 
 
-def load_riot_objects(local_data, latest_version, locale: str, object_type: str):
+def load_riot_objects(local_data, version, locale: str, object_type: str):
     """Loads the selected type of objects in the database.
 
     Queries the Riot servers for the local_data then writes it to the database.
@@ -14,11 +14,11 @@ def load_riot_objects(local_data, latest_version, locale: str, object_type: str)
 
     Args:
         local_data: Dictionary to write to
-        latest_version: the latest version available on dd
+        version: the version to use
         locale: the locale to load
         object_type: the type of object to load__
     """
-    url = get_ddragon_url(latest_version, locale, object_type)
+    url = get_ddragon_url(version, locale, object_type)
 
     lit_logger.debug(f"Querying {url}")
     response = requests.get(url)
@@ -35,9 +35,9 @@ def load_riot_objects(local_data, latest_version, locale: str, object_type: str)
         parse_summoner_spells(riot_data, locale, local_data)
 
 
-def get_ddragon_url(latest_version, locale: str, object_type: str):
+def get_ddragon_url(version, locale: str, object_type: str):
     # Riot changed name for some reason
-    return f"{dd_url}/cdn/{latest_version}/data/{locale}/{object_type}.json"
+    return f"{dd_url}/cdn/{version}/data/{locale}/{object_type}.json"
 
 
 def parse_champions(data, locale, local_data):

@@ -5,7 +5,7 @@ import logging
 
 from concurrent.futures.thread import ThreadPoolExecutor
 from collections import defaultdict
-from typing import Dict
+from typing import Dict, Optional
 
 from lol_id_tools.local_data_parser import load_nickname_data, NameInfo
 from lol_id_tools.data_parser import load_riot_objects, parse_cdragon_runes
@@ -96,16 +96,16 @@ class LolObjectData:
     def loaded_locales(self):
         return [k for k in self.loaded_data]
 
-    def load_locale(self, locale, latest_version=None):
-        if not latest_version:
-            latest_version = self.get_latest_version()
+    def load_locale(self, locale, version: Optional[str]):
+        if not version:
+            version = self.get_latest_version()
 
         self.loaded_data[locale] = defaultdict(dict)
 
         with ThreadPoolExecutor() as executor:
             # TODO Just call different functions?
             for object_type in ["champion", "runesReforged", "item", "summoner"]:
-                executor.submit(load_riot_objects, self.loaded_data, latest_version, locale, object_type)
+                executor.submit(load_riot_objects, self.loaded_data, version, locale, object_type)
 
             # Cdragon is different enough that it’s handled by itself
             executor.submit(parse_cdragon_runes, self.loaded_data, locale)
@@ -113,13 +113,14 @@ class LolObjectData:
         self.recalculate_names_to_id()
         self.pickle_loaded_data()
 
-    def reload_all_locales(self):
+    def reload_all_locales(self, version: Optional[str]):
         self._names_to_id = {}
-        latest_version = self.get_latest_version()
+        if version is None:
+            version = self.get_latest_version()
 
         with ThreadPoolExecutor() as executor:
             for locale in self.loaded_locales:
-                executor.submit(self.load_locale, locale, latest_version)
+                executor.submit(self.load_locale, locale, version)
 
     @staticmethod
     def get_latest_version():
