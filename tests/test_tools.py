@@ -45,13 +45,14 @@ def test_botrk_id():
     assert lit.get_id("Blade of the ruined king") == 3153
     # Typo test
     assert lit.get_id("Blade of the kuined ring") == 3153
+    # OBSOLETE - We don't support nicknames or different locales anymore
     # Korean test
-    assert lit.get_id("몰락한 왕의 검") == 3153
+    # assert lit.get_id("몰락한 왕의 검") == 3153
     # Nickname test
-    assert lit.get_id("botrk") == 3153
+    # assert lit.get_id("botrk") == 3153
 
     # Name test
-    assert lit.get_name(3153, object_type="item") == "Blade of the Ruined King"
+    assert lit.get_name(3153, object_type="item") == "Blade of The Ruined King"
 
 
 def test_botrk_translation():
@@ -76,10 +77,6 @@ def test_grasp_id():
 
 def test_grasp_translation():
     translation_test_function("Grasp of the Undying", "착취의 손아귀")
-
-
-def test_jungle_item():
-    assert lit.get_name(1400) == "Stalker's Blade - Warrior"
 
 
 def test_keystone():

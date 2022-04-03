@@ -1,3 +1,4 @@
+import pytest
 import requests
 
 import lol_id_tools
@@ -53,11 +54,22 @@ def test_parse_summoners():
         assert name == lol_id_tools.get_name(id_, object_type="summoner_spell")
 
 
-def test_get_name_with_patch():
+@pytest.mark.parametrize(
+    "tuple",
+    [
+        (1, "Annie", "champion", "12.3"),
+        (1400, "Stalker's Blade - Warrior", "item", "10.1"),
+        (8135, "Treasure Hunter", "rune", "12.6"),
+        (8135, "Ravenous Hunter", "rune", "12.5"),
+    ],
+)
+def test_get_name_with_patch(tuple):
+    id_, name, type_, patch = tuple
+
     response = lol_id_tools.get_name(
-        1,
-        object_type="champion",
-        patch="12.3",
+        id_,
+        object_type=type_,
+        patch=patch,
     )
 
-    assert response == "Annie"
+    assert response == name
