@@ -1,9 +1,6 @@
 from lol_id_tools.logger import lit_logger
+from lol_id_tools import parsing
 import requests
-
-dd_url = "https://ddragon.leagueoflegends.com"
-
-# TODO Move data from ddragon to cdragon to get ID of removed items too
 
 
 def load_riot_objects(local_data, latest_version, locale: str, object_type: str):
@@ -18,7 +15,7 @@ def load_riot_objects(local_data, latest_version, locale: str, object_type: str)
         locale: the locale to load
         object_type: the type of object to load__
     """
-    url = get_ddragon_url(latest_version, locale, object_type)
+    url = parsing.get_ddragon_url(latest_version, locale, object_type)
 
     lit_logger.debug(f"Querying {url}")
     response = requests.get(url)
@@ -35,14 +32,11 @@ def load_riot_objects(local_data, latest_version, locale: str, object_type: str)
         parse_summoner_spells(riot_data, locale, local_data)
 
 
-def get_ddragon_url(latest_version, locale: str, object_type: str):
-    # Riot changed name for some reason
-    return f"{dd_url}/cdn/{latest_version}/data/{locale}/{object_type}.json"
-
-
 def parse_champions(data, locale, local_data):
     for champion_tag, champion_dict in data["data"].items():
-        local_data[locale][int(champion_dict["key"])]["champion"] = champion_dict["name"]
+        local_data[locale][int(champion_dict["key"])]["champion"] = champion_dict[
+            "name"
+        ]
 
 
 def parse_items(data, locale, local_data):
@@ -70,7 +64,9 @@ def parse_runes(data, locale, local_data):
 def parse_summoner_spells(riot_data, locale, local_data):
     for summoner_spell in riot_data["data"]:
         summoner_spell_info = riot_data["data"][summoner_spell]
-        local_data[locale][int(summoner_spell_info["key"])]["summoner_spell"] = summoner_spell_info["name"]
+        local_data[locale][int(summoner_spell_info["key"])][
+            "summoner_spell"
+        ] = summoner_spell_info["name"]
 
 
 def parse_cdragon_runes(local_data, locale):

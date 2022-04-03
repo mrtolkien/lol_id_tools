@@ -7,8 +7,8 @@ from concurrent.futures.thread import ThreadPoolExecutor
 from collections import defaultdict
 from typing import Dict
 
-from lol_id_tools.local_data_parser import load_nickname_data, NameInfo
-from lol_id_tools.data_parser import load_riot_objects, parse_cdragon_runes
+from lol_id_tools.parsing.local_data_parser import load_nickname_data, NameInfo
+from lol_id_tools.parsing.data_parser import load_riot_objects, parse_cdragon_runes
 
 save_folder = os.path.join(os.path.expanduser("~"), ".config", "lol_id_tools")
 if not os.path.exists(save_folder):
@@ -89,7 +89,9 @@ class LolObjectData:
                                 object_id = id_
                                 break
 
-                    self._names_to_id[nickname.lower()] = NameInfo(object_id, object_type, locale)
+                    self._names_to_id[nickname.lower()] = NameInfo(
+                        object_id, object_type, locale
+                    )
 
     # Defining another property for more readable code
     @property
@@ -105,7 +107,13 @@ class LolObjectData:
         with ThreadPoolExecutor() as executor:
             # TODO Just call different functions?
             for object_type in ["champion", "runesReforged", "item", "summoner"]:
-                executor.submit(load_riot_objects, self.loaded_data, latest_version, locale, object_type)
+                executor.submit(
+                    load_riot_objects,
+                    self.loaded_data,
+                    latest_version,
+                    locale,
+                    object_type,
+                )
 
             # Cdragon is different enough that it’s handled by itself
             executor.submit(parse_cdragon_runes, self.loaded_data, locale)
@@ -123,8 +131,7 @@ class LolObjectData:
 
     @staticmethod
     def get_latest_version():
-        """Gets the latest version available on ddragon.
-        """
+        """Gets the latest version available on ddragon."""
         url = "https://ddragon.leagueoflegends.com/api/versions.json"
 
         response = requests.get(url)
@@ -134,8 +141,7 @@ class LolObjectData:
         return data[0]
 
     def delete_local_data(self):
-        """Mainly used for testing purposes
-        """
+        """Mainly used for testing purposes"""
         try:
             os.remove(self.data_location)
         except FileNotFoundError:
