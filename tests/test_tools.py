@@ -4,7 +4,7 @@ import lol_id_tools as lit
 import os
 
 try:
-    os.remove(lit.lol_id_tools.lod.data_location)
+    os.remove(lit.functions.lod.data_location)
 except FileNotFoundError:
     pass
 

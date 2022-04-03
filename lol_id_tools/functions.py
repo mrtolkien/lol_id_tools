@@ -1,19 +1,23 @@
-import warnings
 from typing import Optional
 
 from rapidfuzz.process import extractOne
+from lol_id_tools.get_simple_id import get_simple_name
 
-from lol_id_tools.local_data_parser import get_clean_locale
 from lol_id_tools.logger import lit_logger
-from lol_id_tools.lol_object_data import LolObjectData
+from lol_id_tools.parsing.local_data_parser import get_clean_locale
+from lol_id_tools.parsing.lol_object_data import LolObjectData
 
 # Instantiating a LolObjectData object is very light as all its fields are ghost loaded.
 lod = LolObjectData()
 
 
-# TODO Add older patches support
 def get_name(
-    input_id: int, output_locale: str = "en_US", object_type=None, retry=True, fallback_to_none=True
+    input_id: int,
+    output_locale: str = "en_US",
+    object_type=None,
+    retry=True,
+    fallback_to_none=True,
+    patch: str = None,
 ) -> Optional[str]:
     """Gets you the name of the associated Riot object.
 
@@ -41,6 +45,14 @@ def get_name(
         input_id = int(input_id)
     except ValueError:
         raise ValueError(f"{input_id} could not be cast to an integer.")
+
+    # If we have the patch, we do the simple process for Leaguepedia
+    if patch:
+        return get_simple_name(
+            input_id,
+            object_type,
+            patch,
+        )
 
     # Riot uses 0 as a "no item" value and -1 as "no ban" value.
     if input_id <= 0:
@@ -120,7 +132,12 @@ def get_id(
     input_str = input_str.lower()
 
     # Handling some Leaguepedia special cases as having an ID of 0, might be stupid and should just raise
-    if not input_str or input_str == "none" or input_str == "loss of ban" or input_str == "no item":
+    if (
+        not input_str
+        or input_str == "none"
+        or input_str == "loss of ban"
+        or input_str == "no item"
+    ):
         return 0
 
     # We try to directly get the object with the exact input name
@@ -148,7 +165,9 @@ def get_id(
         # If the locale was not loaded yet, we restart the process
         if locale not in lod.loaded_locales:
             lod.load_locale(locale)
-            return get_id(input_str, minimum_score, input_locale, object_type, retry=False)
+            return get_id(
+                input_str, minimum_score, input_locale, object_type, retry=False
+            )
 
         possible_names_to_id = {
             name: possible_names_to_id[name]
@@ -164,7 +183,9 @@ def get_id(
     if score < minimum_score:
         if retry:
             lod.reload_all_locales()
-            return get_id(input_str, minimum_score, input_locale, object_type, retry=False)
+            return get_id(
+                input_str, minimum_score, input_locale, object_type, retry=False
+            )
         else:
             error_text = f"No object name close enough to '{input_str}' found."
             raise NoMatchingNameFound(error_text)
@@ -204,4 +225,7 @@ def get_translation(
         get_translation('Miss Fortune', 'ko_KR')
         get_translation('mf')
     """
-    return get_name(get_id(object_name, minimum_score, input_locale, object_type, retry), output_locale,)
+    return get_name(
+        get_id(object_name, minimum_score, input_locale, object_type, retry),
+        output_locale,
+    )
