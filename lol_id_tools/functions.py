@@ -229,3 +229,15 @@ def get_translation(
         get_id(object_name, minimum_score, input_locale, object_type, retry),
         output_locale,
     )
+
+
+class VersionedNameGetter:
+    def __init__(self, patch: str) -> None:
+        self.patch = patch
+
+    def get_name(self, input_id: int, object_type: str) -> str:
+        return get_name(
+            input_id,
+            object_type=object_type,
+            patch=self.patch,
+        )

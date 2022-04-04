@@ -73,3 +73,10 @@ def test_get_name_with_patch(tuple):
     )
 
     assert response == name
+
+
+def test_class():
+    lit = lol_id_tools.VersionedNameGetter("12.6")
+
+    assert "Annie" == lit.get_name(1, object_type="champion")
+    assert "Treasure Hunter" == lit.get_name(8135, object_type="rune")
