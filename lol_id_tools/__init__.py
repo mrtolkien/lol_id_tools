@@ -3,4 +3,5 @@ from lol_id_tools.functions import (
     get_name,
     get_translation,
     NoMatchingNameFound,
+    VersionedNameGetter,
 )
