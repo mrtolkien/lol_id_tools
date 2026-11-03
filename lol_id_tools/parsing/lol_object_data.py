@@ -74,8 +74,18 @@ class LolObjectData:
             # First we write the info from riot_data
             for id_ in self.loaded_data[locale]:
                 for object_type in self.loaded_data[locale][id_]:
-                    name = self.loaded_data[locale][id_][object_type]
-                    self._names_to_id[name.lower()] = NameInfo(id_, object_type, locale)
+                    name = self.loaded_data[locale][id_][object_type].lower()
+                    # Riot ships mode-specific copies of some objects under the same name
+                    # (e.g. Arena items like 773153 for Blade of the Ruined King, 3153).
+                    # On collisions, we keep the lowest ID, which is the base object.
+                    existing = self._names_to_id.get(name)
+                    if (
+                        existing is not None
+                        and existing.locale == locale
+                        and existing.id < id_
+                    ):
+                        continue
+                    self._names_to_id[name] = NameInfo(id_, object_type, locale)
 
             # Then we write the info from nicknames_data if we have loaded the locale
             if locale in self.nickname_data:
